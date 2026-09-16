@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Status Booking — Kaia Photo Studio</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<nav class="top">
+  <a class="logo" href="/">Kaia<span style="color:var(--bronze);"> Photo Studio</span></a>
+</nav>
+
+<main class="section" style="max-width:640px;">
+  <div class="section-head"><h2>Status Booking</h2></div>
+  <div id="content">Memuat…</div>
+</main>
+
+<script>
+const parts = window.location.pathname.split('/').filter(Boolean);
+const code = parts[1] || '';
+const token = new URLSearchParams(window.location.search).get('token') || ''; 
+function formatIDR(n){ return "Rp" + Number(n).toLocaleString('id-ID'); }
+
+async function load(){
+  const res = await fetch(`/api/bookings/${encodeURIComponent(code)}?token=${encodeURIComponent(token)}`);
+  const data = await res.json();
+  const el = document.getElementById('content');
+
+  if (!res.ok) {
+    el.innerHTML = `<div class="empty-state">Booking dengan kode <strong>${code}</strong> tidak ditemukan.</div>`;
+    return;
+  }
+
+  let rows = `
+    <div class="row"><span>Booking Code</span><span><strong>${data.bookingCode}</strong></span></div>
+    <div class="row"><span>Status Booking</span><span><span class="badge ${data.bookingStatus}">${data.bookingStatus}</span></span></div>
+    <div class="row"><span>Status Pembayaran</span><span><span class="badge ${data.paymentStatus.replace(' ','')}">${data.paymentStatus}</span></span></div>
+    <div class="row"><span>Paket</span><span>${data.packageName}</span></div>
+    <div class="row"><span>Tanggal</span><span>${data.date}</span></div>
+    <div class="row"><span>Jam</span><span>${data.startTime} – ${data.endTime}</span></div>
+    <div class="row"><span>Jumlah orang</span><span>${data.peopleCount}</span></div>`;
+  if (data.additionalPeopleCharged > 0) {
+    rows += `<div class="row"><span>Orang tambahan</span><span>${data.additionalPeopleCharged}</span></div>`;
+  }
+  rows += `<div class="row total"><span>Total</span><span>${formatIDR(data.totalPrice)}</span></div>`;
+
+  el.innerHTML = `
+    <div class="summary-box">${rows}</div>
+    <p class="hint">Ada kendala atau perlu reschedule? Hubungi admin lewat WhatsApp, cantumkan booking code di atas.</p>
+  `;
+}
+load();
+</script>
+
+</body>
+</html>

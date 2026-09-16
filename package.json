@@ -1,0 +1,20 @@
+{
+  "name": "kaia-booking",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Sistem booking Kaia Photo Studio - Netlify Functions (Express) + Supabase Postgres.",
+  "scripts": {
+    "start": "node server/index.js",
+    "generate-admin-sql": "node scripts/generate-admin-sql.js",
+    "test": "node scripts/smoke-test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "serverless-http": "^3.2.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.4.5",
+    "googleapis": "^144.0.0"
+  }
+}

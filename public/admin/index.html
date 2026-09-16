@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Kaia Photo Studio</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="top">
+  <div class="logo">Kaia<span style="color:var(--bronze);"> Admin</span></div>
+  <div id="nav-right"></div>
+</nav>
+
+<!-- LOGIN -->
+<main class="section" id="login-view" style="max-width:420px;">
+  <div class="section-head"><h2>Login Admin</h2></div>
+  <div class="field" style="margin-bottom:14px;">
+    <label>Email</label>
+    <input type="email" id="login-email" placeholder="admin@kaiaphotostudio.com">
+  </div>
+  <div class="field" style="margin-bottom:14px;">
+    <label>Password</label>
+    <input type="password" id="login-password">
+  </div>
+  <div id="login-error"></div>
+  <button class="btn-primary" style="margin-top:10px;" onclick="doLogin()">Login</button>
+</main>
+
+<!-- DASHBOARD -->
+<main class="section" id="dashboard-view" style="display:none;max-width:1100px;">
+  <div class="stat-grid" id="stat-grid"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="bookings" onclick="switchTab('bookings')">Booking</button>
+    <button class="tab-btn" data-tab="calendar" onclick="switchTab('calendar')">Blocked Slot</button>
+    <button class="tab-btn" data-tab="packages" onclick="switchTab('packages')">Paket</button>
+    <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <!-- TAB: BOOKINGS -->
+  <section id="tab-bookings">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+      <input type="text" id="filter-search" placeholder="Cari nama / kode / WA" style="max-width:220px;">
+      <select id="filter-status">
+        <option value="">Semua Status Booking</option>
+        <option value="Pending">Pending</option>
+        <option value="Confirmed">Confirmed</option>
+        <option value="Cancelled">Cancelled</option>
+        <option value="Completed">Completed</option>
+      </select>
+      <select id="filter-payment">
+        <option value="">Semua Status Bayar</option>
+        <option value="Unpaid">Unpaid</option>
+        <option value="Waiting Verification">Waiting Verification</option>
+        <option value="Paid">Paid</option>
+        <option value="Refunded">Refunded</option>
+      </select>
+      <select id="filter-when">
+        <option value="">Semua Tanggal</option>
+        <option value="today">Hari Ini</option>
+        <option value="upcoming">Mendatang</option>
+      </select>
+      <button class="btn-small" onclick="loadBookings()">Filter</button>
+    </div>
+    <div id="bookings-table"></div>
+  </section>
+
+  <!-- TAB: BLOCKED SLOTS -->
+  <section id="tab-calendar" style="display:none;">
+    <div class="card" style="margin-bottom:20px;max-width:480px;">
+      <h3 style="font-size:16px;margin-bottom:14px;">Blokir Slot Baru</h3>
+      <div class="field" style="margin-bottom:10px;"><label>Tanggal</label><input type="date" id="bs-date"></div>
+      <div style="display:flex;gap:10px;">
+        <div class="field"><label>Jam Mulai</label><input type="time" id="bs-start"></div>
+        <div class="field"><label>Jam Selesai</label><input type="time" id="bs-end"></div>
+      </div>
+      <div class="field" style="margin:10px 0;"><label>Alasan</label><input type="text" id="bs-reason" placeholder="cth: Studio dipakai private event"></div>
+      <button class="btn-small" onclick="addBlockedSlot()">Blokir Slot</button>
+    </div>
+    <div id="blocked-list"></div>
+  </section>
+
+  <!-- TAB: PACKAGES -->
+  <section id="tab-packages" style="display:none;">
+    <p class="hint" style="margin-bottom:16px;">Ubah harga/durasi/aturan jumlah orang di sini. Booking yang sudah ada TIDAK berubah walau kamu edit paket, karena tiap booking menyimpan salinan harga sendiri saat dibuat.</p>
+    <div id="packages-admin-list"></div>
+  </section>
+
+  <!-- TAB: SETTINGS -->
+  <section id="tab-settings" style="display:none;max-width:520px;">
+    <div class="form-grid" id="settings-form"></div>
+    <button class="btn-primary" style="margin-top:18px;" onclick="saveSettings()">Simpan Settings</button>
+    <div id="settings-msg"></div>
+  </section>
+</main>
+
+<!-- BOOKING DETAIL MODAL -->
+<div class="modal-backdrop" id="modal-backdrop" style="display:none;">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>
+let me = null;
+function esc(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));}
+
+const CATEGORY_LABELS = {
+  pas_foto: 'Pas Foto', self_photo: 'Self Photo', wisuda_family: 'Wisuda / Family',
+  personal_photo: 'Personal Photo', maternity: 'Maternity', prewedding: 'Prewedding'
+};
+
+async function checkSession(){
+  const res = await fetch('/api/admin/me');
+  const data = await res.json();
+  if (data.loggedIn) { me = data; showDashboard(); }
+}
+
+async function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errBox = document.getElementById('login-error');
+  errBox.innerHTML = '';
+  const res = await fetch('/api/admin/login', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  if (!res.ok) { errBox.innerHTML = `<div class="error-box">${data.error}</div>`; return; }
+  me = data;
+  showDashboard();
+}
+
+async function doLogout(){
+  await fetch('/api/admin/logout', { method: 'POST' });
+  window.location.reload();
+}
+
+function showDashboard(){
+  document.getElementById('login-view').style.display = 'none';
+  document.getElementById('dashboard-view').style.display = 'block';
+  document.getElementById('nav-right').innerHTML = `
+    <span style="font-size:13px;color:var(--bronze-deep);margin-right:12px;">${me.email}</span>
+    <button class="btn-small" onclick="doLogout()">Logout</button>
+  `;
+  loadSummary();
+  loadBookings();
+  loadPackagesAdmin();
+  loadSettingsForm();
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('bs-date').value = today;
+  document.getElementById('bs-date').min = today;
+  loadBlockedSlots();
+}
+
+function switchTab(tab){
+  ['bookings','calendar','packages','settings'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = (t === tab) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+}
+
+function formatIDR(n){ return "Rp" + Number(n).toLocaleString('id-ID'); }
+
+async function loadSummary(){
+  const res = await fetch('/api/admin/summary');
+  const s = await res.json();
+  document.getElementById('stat-grid').innerHTML = `
+    <div class="stat-card"><div class="num">${s.total}</div><div class="lbl">TOTAL BOOKING</div></div>
+    <div class="stat-card"><div class="num">${s.today}</div><div class="lbl">BOOKING HARI INI</div></div>
+    <div class="stat-card"><div class="num">${s.waitingPayment}</div><div class="lbl">MENUNGGU PEMBAYARAN</div></div>
+    <div class="stat-card"><div class="num">${s.paid}</div><div class="lbl">SUDAH LUNAS</div></div>
+    <div class="stat-card"><div class="num">${s.thisWeek}</div><div class="lbl">BOOKING MINGGU INI</div></div>
+  `;
+}
+
+async function loadBookings(){
+  const params = new URLSearchParams();
+  const search = document.getElementById('filter-search').value.trim();
+  const status = document.getElementById('filter-status').value;
+  const paymentStatus = document.getElementById('filter-payment').value;
+  const when = document.getElementById('filter-when').value;
+  if (search) params.set('search', search);
+  if (status) params.set('status', status);
+  if (paymentStatus) params.set('paymentStatus', paymentStatus);
+  if (when) params.set('when', when);
+
+  const res = await fetch('/api/admin/bookings?' + params.toString());
+  const rows = await res.json();
+  const container = document.getElementById('bookings-table');
+
+  if (!rows.length) {
+    container.innerHTML = '<div class="empty-state">Belum ada booking yang cocok dengan filter ini.</div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Kode</th><th>Tanggal</th><th>Jam</th><th>Nama</th><th>Paket</th>
+        <th>Jml</th><th>Total</th><th>Status</th><th>Bayar</th><th></th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(b => `
+          <tr>
+            <td>${esc(b.booking_code)}</td>
+            <td>${esc(b.booking_date)}</td>
+            <td>${esc(b.start_time)}–${esc(b.end_time)}</td>
+            <td>${esc(b.customer_name)}</td>
+            <td>${esc(b.package_name_snapshot)}</td>
+            <td>${b.people_count}</td>
+            <td>${formatIDR(b.total_price)}</td>
+            <td><span class="badge ${esc(b.booking_status)}">${esc(b.booking_status)}</span></td>
+            <td><span class="badge ${esc(b.payment_status.replace(' ',''))}">${b.payment_status}</span></td>
+            <td><button class="btn-small" onclick="openBookingDetail(${b.id})">Detail</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function openBookingDetail(id){
+  const res = await fetch(`/api/admin/bookings/${id}`);
+  const b = await res.json();
+  document.getElementById('modal-content').innerHTML = `
+    <h3 style="font-size:20px;margin-bottom:14px;">${esc(b.booking_code)}</h3>
+    <div class="summary-box" style="margin-bottom:16px;">
+      <div class="row"><span>Nama</span><span>${esc(b.customer_name)}</span></div>
+      <div class="row"><span>WhatsApp</span><span>${esc(b.whatsapp)}</span></div>
+      <div class="row"><span>Email</span><span>${esc(b.email || '-')}</span></div>
+      <div class="row"><span>Paket</span><span>${esc(b.package_name_snapshot)}</span></div>
+      <div class="row"><span>Tanggal</span><span>${esc(b.booking_date)}</span></div>
+      <div class="row"><span>Jam</span><span>${esc(b.start_time)}–${esc(b.end_time)}</span></div>
+      <div class="row"><span>Jumlah orang</span><span>${b.people_count}${b.additional_people_charged > 0 ? ` (${b.additional_people_charged} tambahan)` : ''}</span></div>
+      <div class="row"><span>Izin upload</span><span>${esc(b.photo_upload_permission)}</span></div>
+      <div class="row total"><span>Total</span><span>${formatIDR(b.total_price)}</span></div>
+    </div>
+
+    <div class="field" style="margin-bottom:10px;">
+      <label>Status Booking</label>
+      <select id="modal-booking-status">
+        ${['Pending','Confirmed','Cancelled','Completed'].map(s => `<option value="${s}" ${s===b.booking_status?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:10px;">
+      <label>Status Pembayaran</label>
+      <select id="modal-payment-status">
+        ${['Unpaid','Waiting Verification','Paid','Refunded'].map(s => `<option value="${s}" ${s===b.payment_status?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field" style="margin-bottom:10px;">
+      <label>Alasan pembatalan (jika cancel)</label>
+      <input type="text" id="modal-cancel-reason" value="${esc(b.cancel_reason || '')}">
+    </div>
+    <div class="field" style="margin-bottom:16px;">
+      <label>Catatan internal</label>
+      <textarea id="modal-notes" rows="3">${esc(b.notes || '')}</textarea>
+    </div>
+    <div class="card" style="margin:14px 0;">
+      <strong>Operasional</strong>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button class="btn-small" onclick="syncCalendar(${b.id})">Sync Google Calendar</button>
+        <button class="btn-small" onclick="linkDriveFolder(${b.id})">Hubungkan Folder Drive</button>
+        <button class="btn-small" onclick="createSelection(${b.id})">Buat Link Pilih Foto</button>
+        <button class="btn-small" onclick="copyProduction(${b.id})">Copy Production List</button>
+      </div>
+      <div id="ops-result" class="hint" style="margin-top:8px;"></div>
+    </div>
+    <div id="modal-error"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-ghost" onclick="closeModal()">Tutup</button>
+      <button class="btn-primary" onclick="saveBookingDetail(${b.id})">Simpan Perubahan</button>
+    </div>
+  `;
+  document.getElementById('modal-backdrop').style.display = 'flex';
+}
+
+function closeModal(){ document.getElementById('modal-backdrop').style.display = 'none'; }
+
+async function syncCalendar(id){ const r=await fetch(`/api/admin/bookings/${id}/calendar-sync`,{method:'POST'}); const d=await r.json(); document.getElementById('ops-result').textContent=d.status ? `Calendar: ${d.status}${d.reason?' — '+d.reason:''}` : (d.error||'Gagal'); }
+async function linkDriveFolder(id){
+  const folderId = prompt('Masukkan Folder ID Google Drive (bagian di URL setelah /folders/):');
+  if (!folderId) return;
+  const folderName = prompt('Nama folder (opsional, untuk memudahkan admin lain):') || '';
+  const r = await fetch(`/api/admin/bookings/${id}/drive-folder`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ folderId, folderName }) });
+  const d = await r.json();
+  document.getElementById('ops-result').textContent = r.ok ? `Folder terhubung — ${d.photoCount} foto ditemukan.` : (d.error || 'Gagal menghubungkan folder.');
+}
+async function createSelection(id){ const r=await fetch(`/api/admin/bookings/${id}/photo-selection`,{method:'POST'}); const d=await r.json(); document.getElementById('ops-result').innerHTML=d.url?`Link: <a href="${d.url}" target="_blank">${d.url}</a>`:(d.error||'Gagal'); }
+async function copyProduction(id){ const r=await fetch(`/api/admin/bookings/${id}/production`); const d=await r.json(); if(!r.ok){document.getElementById('ops-result').textContent=d.error||'Belum ada data';return;} await navigator.clipboard.writeText(d.text); document.getElementById('ops-result').textContent='Production list berhasil dicopy.'; }
+
+async function saveBookingDetail(id){
+  const bookingStatus = document.getElementById('modal-booking-status').value;
+  const paymentStatus = document.getElementById('modal-payment-status').value;
+  const cancelReason = document.getElementById('modal-cancel-reason').value.trim();
+  const notes = document.getElementById('modal-notes').value.trim();
+
+  const res = await fetch(`/api/admin/bookings/${id}`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ bookingStatus, paymentStatus, cancelReason, notes })
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    document.getElementById('modal-error').innerHTML = `<div class="error-box">${data.error}</div>`;
+    return;
+  }
+  closeModal();
+  loadBookings();
+  loadSummary();
+}
+
+async function loadBlockedSlots(){
+  const date = document.getElementById('bs-date').value;
+  const res = await fetch('/api/admin/blocked-slots' + (date ? `?date=${date}` : ''));
+  const rows = await res.json();
+  const container = document.getElementById('blocked-list');
+  if (!rows.length) { container.innerHTML = '<div class="empty-state">Belum ada slot yang diblokir.</div>'; return; }
+  container.innerHTML = `
+    <table>
+      <thead><tr><th>Tanggal</th><th>Jam</th><th>Alasan</th><th></th></tr></thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td>${r.date}</td>
+            <td>${r.start_time}–${r.end_time}</td>
+            <td>${r.reason || '-'}</td>
+            <td><button class="btn-danger" onclick="removeBlockedSlot(${r.id})">Hapus</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function addBlockedSlot(){
+  const date = document.getElementById('bs-date').value;
+  const startTime = document.getElementById('bs-start').value;
+  const endTime = document.getElementById('bs-end').value;
+  const reason = document.getElementById('bs-reason').value.trim();
+  if (!date || !startTime || !endTime) { alert('Tanggal, jam mulai, dan jam selesai wajib diisi.'); return; }
+
+  const res = await fetch('/api/admin/blocked-slots', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ date, startTime, endTime, reason })
+  });
+  if (!res.ok) { const d = await res.json(); alert(d.error); return; }
+  document.getElementById('bs-reason').value = '';
+  loadBlockedSlots();
+}
+
+async function removeBlockedSlot(id){
+  await fetch(`/api/admin/blocked-slots/${id}`, { method: 'DELETE' });
+  loadBlockedSlots();
+}
+
+document.getElementById('bs-date').addEventListener('change', loadBlockedSlots);
+
+async function loadPackagesAdmin(){
+  const res = await fetch('/api/admin/packages');
+  const rows = await res.json();
+  const container = document.getElementById('packages-admin-list');
+
+  const byCategory = {};
+  rows.forEach(p => { (byCategory[p.category] = byCategory[p.category] || []).push(p); });
+
+  container.innerHTML = Object.entries(byCategory).map(([cat, pkgs]) => `
+    <h3 style="font-size:18px;margin:22px 0 12px;">${CATEGORY_LABELS[cat] || cat}</h3>
+    ${pkgs.map(p => `
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h4 style="font-size:16px;font-family:'Fraunces',serif;font-weight:500;">
+            ${p.name}
+            <span class="hint" style="display:inline;">(${p.pricing_type === 'per_person' ? 'harga per orang' : 'harga paket'})</span>
+            ${!p.active ? '<span class="badge Cancelled">Nonaktif</span>' : ''}
+          </h4>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>Nama</label><input type="text" id="pkg-name-${p.id}" value="${p.name}"></div>
+          <div class="field"><label>${p.pricing_type === 'per_person' ? 'Harga per orang (IDR)' : 'Harga dasar (IDR)'}</label><input type="number" id="pkg-price-${p.id}" value="${p.base_price}"></div>
+          <div class="field"><label>Durasi (menit)</label><input type="number" id="pkg-duration-${p.id}" value="${p.duration_minutes}"></div>
+          <div class="field"><label>Min orang</label><input type="number" id="pkg-min-${p.id}" value="${p.min_people}"></div>
+          <div class="field"><label>Max orang (kosongkan = tidak dibatasi)</label><input type="number" id="pkg-max-${p.id}" value="${p.max_people ?? ''}"></div>
+          ${p.pricing_type === 'fixed' ? `
+            <div class="field"><label>Termasuk berapa orang di harga dasar</label><input type="number" id="pkg-included-${p.id}" value="${p.included_people ?? ''}"></div>
+            <div class="field"><label>Biaya orang tambahan (IDR, kosongkan = tidak ada)</label><input type="number" id="pkg-addfee-${p.id}" value="${p.additional_person_fee ?? ''}"></div>
+          ` : ''}
+          <div class="field">
+            <label>Status</label>
+            <select id="pkg-active-${p.id}">
+              <option value="1" ${p.active ? 'selected' : ''}>Aktif</option>
+              <option value="0" ${!p.active ? 'selected' : ''}>Nonaktif</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-small" style="margin-top:12px;" onclick="savePackage(${p.id}, '${p.pricing_type}')">Simpan</button>
+      </div>
+    `).join('')}
+  `).join('');
+}
+
+async function savePackage(id, pricingType){
+  const body = {
+    name: document.getElementById(`pkg-name-${id}`).value.trim(),
+    basePrice: Number(document.getElementById(`pkg-price-${id}`).value),
+    durationMinutes: document.getElementById(`pkg-duration-${id}`).value ? Number(document.getElementById(`pkg-duration-${id}`).value) : null,
+    minPeople: Number(document.getElementById(`pkg-min-${id}`).value),
+    maxPeople: document.getElementById(`pkg-max-${id}`).value ? Number(document.getElementById(`pkg-max-${id}`).value) : null,
+    active: document.getElementById(`pkg-active-${id}`).value === '1'
+  };
+  if (pricingType === 'fixed') {
+    const includedEl = document.getElementById(`pkg-included-${id}`);
+    const feeEl = document.getElementById(`pkg-addfee-${id}`);
+    body.includedPeople = includedEl.value ? Number(includedEl.value) : null;
+    body.additionalPersonFee = feeEl.value ? Number(feeEl.value) : null;
+  }
+
+  const res = await fetch(`/api/admin/packages/${id}`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+  });
+  if (!res.ok) { const d = await res.json(); alert(d.error); return; }
+  loadPackagesAdmin();
+}
+
+const SETTINGS_FIELDS = [
+  { key: 'studioName', label: 'Nama Studio' },
+  { key: 'address', label: 'Alamat' },
+  { key: 'openTime', label: 'Jam Buka (HH:MM)' },
+  { key: 'closeTime', label: 'Jam Tutup (HH:MM)' },
+  { key: 'whatsapp', label: 'No. WhatsApp Admin (62xxx)' },
+  { key: 'instagram', label: 'Username Instagram' },
+  { key: 'bankName', label: 'Nama Bank' },
+  { key: 'bankAccount', label: 'No. Rekening' },
+  { key: 'bankHolder', label: 'Atas Nama Rekening' },
+  { key: 'slotIntervalMinutes', label: 'Interval Slot (menit)' }
+];
+
+async function loadSettingsForm(){
+  const res = await fetch('/api/admin/settings');
+  const s = await res.json();
+  document.getElementById('settings-form').innerHTML = SETTINGS_FIELDS.map(f => `
+    <div class="field full">
+      <label>${f.label}</label>
+      <input type="text" id="set-${f.key}" value="${s[f.key]}">
+    </div>
+  `).join('');
+  const oauth = await fetch('/api/admin/google/oauth/url');
+  const od = await oauth.json();
+  document.getElementById('settings-form').insertAdjacentHTML('beforeend', od.url ? `<div class=\"field full\"><label>Google</label><a class=\"btn-small\" target=\"_blank\" href=\"${od.url}\">Hubungkan Google Calendar & Drive</a></div>` : '');
+}
+
+async function saveSettings(){
+  const body = {};
+  SETTINGS_FIELDS.forEach(f => {
+    const val = document.getElementById(`set-${f.key}`).value;
+    body[f.key] = f.key === 'slotIntervalMinutes' ? Number(val) : val;
+  });
+  const res = await fetch('/api/admin/settings', {
+    method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+  });
+  const msg = document.getElementById('settings-msg');
+  if (!res.ok) { msg.innerHTML = '<div class="error-box">Gagal menyimpan settings.</div>'; return; }
+  msg.innerHTML = '<div class="success-box">Settings tersimpan.</div>';
+}
+
+checkSession();
+</script>
+
+</body>
+</html>
