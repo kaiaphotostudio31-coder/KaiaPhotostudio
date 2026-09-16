@@ -457,8 +457,8 @@ $$ language plpgsql security definer set search_path=public;
 
 -- FINAL SECURITY HARDENING
 -- Backend uses the Supabase service role; public/anon clients must not execute booking or sync RPCs directly.
-revoke all on function create_booking(
-  text,text,text,text,text,bigint,text,text,text,integer,integer,integer,integer,integer,integer,date,text,text
+revoke all on function public.create_booking(
+  text,text,text,text,text,bigint,text,text,text,integer,integer,integer,integer,integer,integer,integer,date,text,text
 ) from public, anon, authenticated;
 
 revoke all on function claim_calendar_sync(bigint) from public, anon, authenticated;
