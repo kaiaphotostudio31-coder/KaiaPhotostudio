@@ -24,6 +24,80 @@ router.get('/settings/public', async (req, res) => {
 
 function mapPackage(p) { return { id:p.id,category:p.category,name:p.name,slug:p.slug,description:p.description,pricingType:p.pricing_type,basePrice:p.base_price,includedPeople:p.included_people,additionalPersonFee:p.additional_person_fee,minPeople:p.min_people,maxPeople:p.max_people,durationMinutes:p.duration_minutes,isAddon:!!p.is_addon,benefits:p.benefits||[],terms:p.terms||[],printOptions:p.print_options||[] }; }
 
+// Landing page gallery — random photos from Google Drive
+router.get('/gallery', async (req, res) => {
+  try {
+    const folderId = process.env.GOOGLE_DRIVE_GALLERY_FOLDER_ID;
+
+    if (!folderId) {
+      return res.json({ photos: [] });
+    }
+
+    const photos = await listDriveImages(folderId);
+
+    const shuffled = [...photos];
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    const selected = shuffled.slice(0, 9);
+
+    res.json({
+      photos: selected.map(photo => ({
+        id: photo.id,
+        name: photo.name,
+        mimeType: photo.mimeType,
+        url: `/api/gallery/photo/${encodeURIComponent(photo.id)}`,
+        alt: 'Kaia Photo Studio'
+      }))
+    });
+  } catch (error) {
+    console.error('[gallery]', error);
+    res.json({ photos: [] });
+  }
+});
+
+// Google Drive image proxy
+router.get('/gallery/photo/:fileId', async (req, res) => {
+  try {
+    const fileId = String(req.params.fileId || '');
+
+    if (!/^[a-zA-Z0-9_-]+$/.test(fileId)) {
+      return res.status(400).end();
+    }
+
+    const response = await getDriveImageStream(fileId);
+
+    const contentType =
+      response.headers?.['content-type'] ||
+      response.headers?.['Content-Type'];
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(contentType)) {
+      return res.status(415).end();
+    }
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300');
+
+    response.data.on('error', (error) => {
+      console.error('[gallery-photo]', error);
+
+      if (!res.headersSent) {
+        res.status(502);
+      }
+
+      res.end();
+    });
+
+    response.data.pipe(res);
+  } catch (error) {
+    console.error('[gallery-photo]', error);
+    res.status(404).end();
+  }
+});
+
 router.get('/packages', async (req,res)=>{
   const {data,error}=await supabase.from('packages').select('*').eq('active',true).order('category').order('base_price');
   if(error) return res.status(500).json({error:'Gagal memuat paket.'});
