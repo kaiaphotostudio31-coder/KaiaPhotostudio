@@ -118,10 +118,10 @@ insert into packages (category, name, slug, pricing_type, base_price, included_p
 -- PAS FOTO
 -- CATATAN: jumlah orang untuk "Pas Foto Tanpa Print" tidak disebutkan di data asli,
 -- jadi tidak dibatasi (min 1, max kosong) alih-alih menebak aturannya.
-('pas_foto', 'Pas Foto Tanpa Print', 'pas-foto-tanpa-print', 'fixed', 25000, null, null, null, null, 15,
+('pas_foto', 'Pas Foto Tanpa Print', 'pas-foto-tanpa-print', 'per_person', 25000, null, null, 1, null, 15,
   '[]', '[]', '[]'),
 
-('pas_foto', 'Pas Foto Dengan Print', 'pas-foto-dengan-print', 'fixed', 50000, 1, null, 1, 1, 15,
+('pas_foto', 'Pas Foto Dengan Print', 'pas-foto-dengan-print', 'per_person', 50000, null, null, 1, null, 15,
   '["Print langsung jadi", "Free 1x edit background", "Edited print photo"]',
   '[]',
   '["2x3 @4 pcs, 3x4 @4 pcs, 4x6 @4 pcs", "4x6 @6 pcs, 3x4 @10 pcs, 2x3 @12 pcs", "4x6 @5 pcs, 3x4 @5 pcs"]'),
