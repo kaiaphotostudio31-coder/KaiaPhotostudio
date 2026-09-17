@@ -160,5 +160,27 @@ async function getDriveImageStream(fileId) {
   const drive = googleLib().drive({ version: 'v3', auth });
   return drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' });
 }
+async function getDriveImageBuffer(fileId) {
+  const auth = await authorizedClient();
+  const drive = googleLib().drive({ version: 'v3', auth });
 
-module.exports = { getAuthUrl, saveOAuthCode, authorizedClient, syncBookingToCalendar, listDriveImages, getDriveImageStream };
+  const { data, headers } = await drive.files.get(
+    { fileId, alt: 'media' },
+    { responseType: 'arraybuffer' }
+  );
+
+  return {
+    buffer: Buffer.from(data),
+    contentType: headers?.['content-type'] || 'application/octet-stream'
+  };
+}
+
+module.exports = {
+  getAuthUrl,
+  saveOAuthCode,
+  authorizedClient,
+  syncBookingToCalendar,
+  listDriveImages,
+  getDriveImageStream,
+  getDriveImageBuffer
+};

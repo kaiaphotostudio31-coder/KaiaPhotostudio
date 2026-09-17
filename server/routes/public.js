@@ -15,8 +15,7 @@ const supabase = require('../supabase');
 const { readSettings } = require('../config');
 const { toMinutes, toHHMM, todayJakartaStr, nowInJakarta, overlaps } = require('../utils/time');
 const { computePricing } = require('../utils/pricing');
-const { listDriveImages, getDriveImageStream } = require('../google');
-
+const { listDriveImages, getDriveImageStream, getDriveImageBuffer } = require('../google');
 router.get('/settings/public', async (req, res) => {
   const s = await readSettings();
   res.json({ studioName:s.studioName,address:s.address,openTime:s.openTime,closeTime:s.closeTime,whatsapp:s.whatsapp,instagram:s.instagram,bankName:s.bankName,bankAccount:s.bankAccount,bankHolder:s.bankHolder });
@@ -68,30 +67,17 @@ router.get('/gallery/photo/:fileId', async (req, res) => {
       return res.status(400).end();
     }
 
-    const response = await getDriveImageStream(fileId);
-
-    const contentType =
-      response.headers?.['content-type'] ||
-      response.headers?.['Content-Type'];
+    const { buffer, contentType } = await getDriveImageBuffer(fileId);
 
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(contentType)) {
       return res.status(415).end();
     }
 
     res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Length', buffer.length);
     res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=300');
 
-    response.data.on('error', (error) => {
-      console.error('[gallery-photo]', error);
-
-      if (!res.headersSent) {
-        res.status(502);
-      }
-
-      res.end();
-    });
-
-    response.data.pipe(res);
+    res.end(buffer);
   } catch (error) {
     console.error('[gallery-photo]', error);
     res.status(404).end();
