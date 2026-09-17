@@ -1,540 +1,910 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kaia Photo Studio — Booking Sesi Foto</title>
-<meta name="description" content="Self Photo Studio di Semarang. Pilih paket, pilih jadwal, dan booking sesi foto di Kaia Photo Studio.">
-<link rel="stylesheet" href="/assets/style.css">
-<style>
-  .cat-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px;}
-  .cat-tab{padding:10px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:13.5px;cursor:pointer;}
-  .cat-tab.active{background:var(--charcoal);color:var(--cream);border-color:var(--charcoal);}
-  .pkg-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .pkg .price-tag{font-size:12px;font-weight:600;color:var(--bronze-deep);opacity:0.75;margin-bottom:2px;}
-  .people-panel{margin-top:18px;border:1px solid var(--bronze);border-radius:16px;padding:22px;background:#fff;}
-  .people-stepper{display:flex;align-items:center;gap:14px;margin-top:8px;}
-  .people-stepper button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:18px;font-weight:700;cursor:pointer;}
-  .people-stepper .count{font-family:'Fraunces',serif;font-size:24px;min-width:32px;text-align:center;}
-  .price-breakdown{margin-top:16px;font-size:14px;}
-  .price-breakdown .row{display:flex;justify-content:space-between;padding:4px 0;}
-  .price-breakdown .row.total{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:700;font-size:17px;}
-  @media (max-width:720px){ .pkg-grid{grid-template-columns:1fr;} }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Kaia Photo Studio — Semarang</title>
+  <meta
+    name="description"
+    content="Kaia Photo Studio Semarang — Pas Foto, Self Photo, Wisuda, Family, Personal Photo, Maternity dan Prewedding."
+  >
+
+  <link rel="stylesheet" href="/assets/style.css">
+
+  <style>
+    :root {
+      --kaia-cream: #f7f3ec;
+      --kaia-dark: #24221f;
+      --kaia-brown: #7d6650;
+      --kaia-line: rgba(36, 34, 31, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--kaia-cream);
+      color: var(--kaia-dark);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .landing {
+      overflow: hidden;
+    }
+
+    /* NAV */
+
+    .landing-nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px clamp(20px, 5vw, 70px);
+      background: rgba(247, 243, 236, .88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--kaia-line);
+    }
+
+    .brand {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -.04em;
+    }
+
+    .brand span {
+      color: var(--kaia-brown);
+      font-weight: 500;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      font-size: 14px;
+    }
+
+    .nav-links a:not(.nav-booking) {
+      opacity: .7;
+    }
+
+    .nav-booking {
+      padding: 11px 18px;
+      border-radius: 999px;
+      background: var(--kaia-dark);
+      color: white;
+    }
+
+    /* HERO */
+
+    .hero {
+      min-height: calc(100vh - 70px);
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      align-items: center;
+      gap: 50px;
+      padding: 70px clamp(20px, 7vw, 100px);
+    }
+
+    .eyebrow {
+      margin-bottom: 18px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--kaia-brown);
+    }
+
+    .hero h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(48px, 7vw, 92px);
+      line-height: .94;
+      letter-spacing: -.065em;
+      font-weight: 700;
+    }
+
+    .hero h1 em {
+      font-family: Georgia, serif;
+      font-weight: 400;
+    }
+
+    .hero-copy {
+      max-width: 500px;
+      margin-top: 28px;
+      font-size: 17px;
+      line-height: 1.7;
+      opacity: .72;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .btn-main,
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 22px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .btn-main {
+      background: var(--kaia-dark);
+      color: white;
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--kaia-line);
+      background: rgba(255,255,255,.35);
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-top: 38px;
+      font-size: 12px;
+      opacity: .62;
+    }
+
+    /* HERO VISUAL */
+
+    .hero-visual {
+      position: relative;
+      min-height: 570px;
+    }
+
+    .hero-frame {
+      position: absolute;
+      inset: 0 30px 30px 0;
+      overflow: hidden;
+      border-radius: 220px 220px 18px 18px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(125,102,80,.20),
+          rgba(255,255,255,.45)
+        );
+      border: 1px solid var(--kaia-line);
+    }
+
+    .hero-frame::after {
+      content: "KAIA";
+      position: absolute;
+      right: 24px;
+      bottom: 20px;
+      font-size: 12px;
+      letter-spacing: .25em;
+      color: rgba(36,34,31,.5);
+    }
+
+    .hero-note {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 150px;
+      padding: 20px;
+      background: white;
+      border: 1px solid var(--kaia-line);
+      box-shadow: 0 18px 50px rgba(0,0,0,.08);
+    }
+
+    .hero-note strong {
+      display: block;
+      font-size: 28px;
+      letter-spacing: -.05em;
+    }
+
+    .hero-note span {
+      display: block;
+      margin-top: 5px;
+      font-size: 11px;
+      line-height: 1.5;
+      opacity: .6;
+    }
+
+    /* SECTION */
+
+    .landing-section {
+      padding: 110px clamp(20px, 7vw, 100px);
+    }
+
+    .section-label {
+      margin-bottom: 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--kaia-brown);
+    }
+
+    .section-title {
+      max-width: 700px;
+      margin: 0;
+      font-size: clamp(34px, 5vw, 60px);
+      line-height: 1;
+      letter-spacing: -.055em;
+    }
+
+    .section-description {
+      max-width: 580px;
+      margin-top: 18px;
+      line-height: 1.7;
+      opacity: .65;
+    }
+
+    /* GALLERY */
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      margin-top: 45px;
+    }
+
+    .gallery-card {
+      min-height: 270px;
+      position: relative;
+      overflow: hidden;
+      background: #e9e3da;
+      border-radius: 4px;
+      border: 1px solid var(--kaia-line);
+    }
+
+    .gallery-card:nth-child(1) {
+      grid-column: span 5;
+      min-height: 440px;
+    }
+
+    .gallery-card:nth-child(2) {
+      grid-column: span 3;
+    }
+
+    .gallery-card:nth-child(3) {
+      grid-column: span 4;
+    }
+
+    .gallery-card:nth-child(4) {
+      grid-column: span 4;
+    }
+
+    .gallery-card:nth-child(5) {
+      grid-column: span 3;
+    }
+
+    .gallery-card:nth-child(6) {
+      grid-column: span 5;
+    }
+
+    .gallery-placeholder {
+      width: 100%;
+      height: 100%;
+      min-height: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(36,34,31,.35);
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    /*
+      NANTI:
+      gallery-card akan otomatis diisi foto dari Google Drive.
+      Foto akan diacak oleh endpoint /api/gallery.
+    */
+
+    /* SERVICES */
+
+    .services {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      margin-top: 45px;
+      background: var(--kaia-line);
+      border: 1px solid var(--kaia-line);
+    }
+
+    .service {
+      padding: 30px;
+      min-height: 190px;
+      background: var(--kaia-cream);
+    }
+
+    .service-number {
+      font-size: 11px;
+      opacity: .45;
+    }
+
+    .service h3 {
+      margin: 35px 0 10px;
+      font-size: 22px;
+      letter-spacing: -.03em;
+    }
+
+    .service p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      opacity: .62;
+    }
+
+    /* CTA */
+
+    .cta {
+      margin: 0 clamp(20px, 7vw, 100px) 100px;
+      padding: clamp(45px, 7vw, 90px);
+      text-align: center;
+      background: var(--kaia-dark);
+      color: white;
+      border-radius: 4px;
+    }
+
+    .cta h2 {
+      max-width: 700px;
+      margin: auto;
+      font-size: clamp(38px, 6vw, 72px);
+      line-height: .95;
+      letter-spacing: -.06em;
+    }
+
+    .cta p {
+      max-width: 500px;
+      margin: 24px auto 0;
+      line-height: 1.7;
+      opacity: .65;
+    }
+
+    .cta .btn-main {
+      margin-top: 30px;
+      background: white;
+      color: var(--kaia-dark);
+    }
+
+    /* FOOTER */
+
+    .landing-footer {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 40px;
+      padding: 50px clamp(20px, 7vw, 100px);
+      border-top: 1px solid var(--kaia-line);
+    }
+
+    .footer-brand {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -.05em;
+    }
+
+    .footer-brand span {
+      color: var(--kaia-brown);
+    }
+
+    .footer-column {
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .footer-title {
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .footer-muted {
+      opacity: .58;
+    }
+
+    .copyright {
+      grid-column: 1 / -1;
+      padding-top: 25px;
+      border-top: 1px solid var(--kaia-line);
+      font-size: 11px;
+      opacity: .45;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 800px) {
+      .nav-links a:not(.nav-booking) {
+        display: none;
+      }
+
+      .hero {
+        min-height: auto;
+        grid-template-columns: 1fr;
+        padding-top: 55px;
+      }
+
+      .hero-visual {
+        min-height: 430px;
+      }
+
+      .hero-frame {
+        inset: 0 20px 20px 0;
+        border-radius: 150px 150px 14px 14px;
+      }
+
+      .landing-section {
+        padding-top: 75px;
+        padding-bottom: 75px;
+      }
+
+      .gallery {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .gallery-card,
+      .gallery-card:nth-child(n) {
+        grid-column: span 1;
+        min-height: 240px;
+      }
+
+      .gallery-card:first-child {
+        grid-column: span 2;
+        min-height: 330px;
+      }
+
+      .services {
+        grid-template-columns: 1fr;
+      }
+
+      .landing-footer {
+        grid-template-columns: 1fr;
+      }
+
+      .copyright {
+        grid-column: auto;
+      }
+
+      .cta {
+        margin-bottom: 60px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<nav class="top">
-  <div class="logo">Kaia<span style="color:var(--bronze);"> Photo Studio</span></div>
-  <a class="btn-ghost" id="nav-wa" href="#" target="_blank">Hubungi Admin</a>
-</nav>
+<div class="landing">
 
-<header class="section" style="padding-top:24px;">
-  <h1 style="font-size:clamp(34px,5.5vw,58px);max-width:14ch;">Abadikan momenmu, tanpa fotografer di baliknya.</h1>
-  <p style="max-width:42ch;margin-top:18px;opacity:0.85;">Self-portrait studio di Semarang — pilih paket, pilih jam, datang, foto. Semua soft file jadi milikmu.</p>
-  <div id="hero-meta" style="margin-top:20px;font-size:14px;color:var(--bronze-deep);"></div>
-</header>
+  <!-- NAV -->
+  <nav class="landing-nav">
+    <a href="/" class="brand">
+      Kaia <span>Photo Studio</span>
+    </a>
 
-<main class="section" id="wizard">
-  <div class="stepper" id="stepper"></div>
+    <div class="nav-links">
+      <a href="#gallery">Gallery</a>
+      <a href="#services">Layanan</a>
+      <a href="#location">Lokasi</a>
+      <a href="/booking" class="nav-booking">Booking</a>
+    </div>
+  </nav>
 
-  <!-- STEP 1: PAKET -->
-  <section id="step-1">
-    <div class="section-head"><h2>Pilih paket yang paling sesuai</h2></div>
-    <div class="cat-tabs" id="cat-tabs"></div>
-    <div class="pkg-grid" id="packages-list">Memuat paket…</div>
 
-    <div class="people-panel" id="people-panel" style="display:none;">
-      <div style="font-weight:600;color:var(--bronze-deep);font-size:13px;">JUMLAH ORANG</div>
-      <div class="people-stepper">
-        <button onclick="changePeople(-1)">−</button>
-        <div class="count" id="people-count">1</div>
-        <button onclick="changePeople(1)">+</button>
+  <!-- HERO -->
+  <main>
+
+    <section class="hero">
+
+      <div class="hero-content">
+
+        <div class="eyebrow">
+          Photo Studio · Semarang
+        </div>
+
+        <h1>
+          Abadikan momenmu,
+          <em>seperti kamu.</em>
+        </h1>
+
+        <p class="hero-copy">
+          Studio foto di Semarang untuk pas foto, self photo,
+          wisuda, family, personal photo, maternity, hingga
+          prewedding.
+        </p>
+
+        <div class="hero-actions">
+          <a href="/booking" class="btn-main">
+            Booking Sekarang →
+          </a>
+
+          <a href="#gallery" class="btn-secondary">
+            Lihat Gallery
+          </a>
+        </div>
+
+        <div class="hero-meta">
+          <span>📍 Krobokan, Semarang</span>
+          <span>🕘 08.00–18.00 WIB</span>
+          <span>@kaia.photostudio</span>
+        </div>
+
       </div>
-      <div id="people-hint" class="hint"></div>
-      <div class="price-breakdown" id="price-breakdown"></div>
-      <div id="no-duration-notice" style="display:none;"></div>
-      <button class="btn-primary" style="margin-top:16px;" id="proceed-btn" onclick="proceedToSchedule()">Lanjut ke Jadwal →</button>
+
+
+      <div class="hero-visual">
+
+        <!--
+          AREA FOTO HERO
+
+          Nanti akan otomatis mengambil satu foto random
+          dari Google Drive.
+        -->
+        <div
+          class="hero-frame"
+          id="hero-photo"
+          aria-label="Foto Kaia Photo Studio"
+        ></div>
+
+        <div class="hero-note">
+          <strong>KAIA</strong>
+          <span>
+            Make your moment
+            worth remembering.
+          </span>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- GALLERY -->
+    <section class="landing-section" id="gallery">
+
+      <div class="section-label">
+        Our Moments
+      </div>
+
+      <h2 class="section-title">
+        Beberapa cerita yang
+        pernah singgah di Kaia.
+      </h2>
+
+      <p class="section-description">
+        Foto-foto di bawah ini nantinya akan diambil secara
+        random dari koleksi Kaia di Google Drive.
+      </p>
+
+
+      <div class="gallery" id="gallery-grid">
+
+        <div class="gallery-card">
+          <div class="gallery-placeholder">
+            Kaia Gallery
+          </div>
+        </div>
+
+        <div class="gallery-card">
+          <div class="gallery-placeholder">
+            Kaia Gallery
+          </div>
+        </div>
+
+        <div class="gallery-card">
+          <div class="gallery-placeholder">
+            Kaia Gallery
+          </div>
+        </div>
+
+        <div class="gallery-card">
+          <div class="gallery-placeholder">
+            Kaia Gallery
+          </div>
+        </div>
+
+        <div class="gallery-card">
+          <div class="gallery-placeholder">
+            Kaia Gallery
+          </div>
+        </div>
+
+        <div class="gallery-card">
+          <div class="gallery-placeholder">
+            Kaia Gallery
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SERVICES -->
+    <section class="landing-section" id="services">
+
+      <div class="section-label">
+        What We Do
+      </div>
+
+      <h2 class="section-title">
+        Satu studio,
+        banyak momen.
+      </h2>
+
+      <div class="services">
+
+        <article class="service">
+          <div class="service-number">01</div>
+          <h3>Pas Foto</h3>
+          <p>
+            Pas foto dengan atau tanpa print,
+            sesuai kebutuhanmu.
+          </p>
+        </article>
+
+        <article class="service">
+          <div class="service-number">02</div>
+          <h3>Self Photo</h3>
+          <p>
+            Kamu yang mengatur pose,
+            kami menyiapkan studionya.
+          </p>
+        </article>
+
+        <article class="service">
+          <div class="service-number">03</div>
+          <h3>Wisuda & Family</h3>
+          <p>
+            Abadikan pencapaian dan momen
+            bersama orang-orang tersayang.
+          </p>
+        </article>
+
+        <article class="service">
+          <div class="service-number">04</div>
+          <h3>Personal Photo</h3>
+          <p>
+            Sesi personal untuk berbagai
+            kebutuhan foto kamu.
+          </p>
+        </article>
+
+        <article class="service">
+          <div class="service-number">05</div>
+          <h3>Maternity</h3>
+          <p>
+            Simpan cerita perjalanan
+            menuju hadirnya si kecil.
+          </p>
+        </article>
+
+        <article class="service">
+          <div class="service-number">06</div>
+          <h3>Prewedding</h3>
+          <p>
+            Buat momen sebelum hari besar
+            jadi bagian dari cerita kalian.
+          </p>
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- LOCATION -->
+    <section class="landing-section" id="location">
+
+      <div class="section-label">
+        Come Visit Us
+      </div>
+
+      <h2 class="section-title">
+        Ketemu kami di Semarang.
+      </h2>
+
+      <p class="section-description">
+        Jl. Ariloka No. 17, Krobokan,
+        Semarang Barat, Semarang.
+        Kami buka setiap hari pukul 08.00–18.00 WIB.
+      </p>
+
+      <div style="
+        margin-top:30px;
+        display:flex;
+        flex-wrap:wrap;
+        gap:12px;
+      ">
+
+        <a
+          href="https://www.google.com/maps/search/?api=1&query=Kaia+Photo+Studio+Semarang"
+          target="_blank"
+          rel="noopener"
+          class="btn-secondary"
+        >
+          Buka Google Maps →
+        </a>
+
+        <a
+          href="https://wa.me/6281390045600"
+          target="_blank"
+          rel="noopener"
+          class="btn-secondary"
+        >
+          Chat WhatsApp →
+        </a>
+
+      </div>
+
+    </section>
+
+
+    <!-- CTA -->
+    <section class="cta">
+
+      <h2>
+        Sekarang giliran
+        ceritamu.
+      </h2>
+
+      <p>
+        Pilih paket, pilih jadwal,
+        dan booking sesi foto kamu di Kaia.
+      </p>
+
+      <a href="/booking" class="btn-main">
+        Booking Sesi Foto →
+      </a>
+
+    </section>
+
+  </main>
+
+
+  <!-- FOOTER -->
+  <footer class="landing-footer">
+
+    <div>
+      <div class="footer-brand">
+        Kaia <span>Photo Studio</span>
+      </div>
     </div>
-  </section>
 
-  <!-- STEP 2: JADWAL -->
-  <section id="step-2" style="display:none;">
-    <div class="section-head"><h2>Pilih tanggal dan jam yang tersedia</h2></div>
-    <div class="field" style="max-width:260px;margin-bottom:10px;">
-      <label>Tanggal</label>
-      <input type="date" id="f-date">
+    <div class="footer-column">
+      <div class="footer-title">Studio</div>
+      <div class="footer-muted">
+        Jl. Ariloka No. 17<br>
+        Krobokan, Semarang Barat<br>
+        Semarang
+      </div>
     </div>
-    <div id="slots-container" class="slots"></div>
-    <div style="margin-top:24px;display:flex;gap:12px;">
-      <button class="btn-ghost" onclick="goToStep(1)">← Kembali</button>
+
+    <div class="footer-column">
+      <div class="footer-title">Contact</div>
+      <div class="footer-muted">
+        08.00–18.00 WIB<br>
+        WhatsApp: 0813-9004-5600<br>
+        Instagram: @kaia.photostudio
+      </div>
     </div>
-  </section>
 
-  <!-- STEP 3: DATA -->
-  <section id="step-3" style="display:none;">
-    <div class="section-head"><h2>Isi data untuk booking kamu</h2></div>
-    <div class="people-panel" style="display:block;margin-bottom:20px;">
-  <div style="font-weight:600;color:var(--bronze-deep);font-size:13px;">
-    JUMLAH ORANG YANG DATANG
-  </div>
+    <div class="copyright">
+      © 2026 Kaia Photo Studio. All rights reserved.
+    </div>
 
-  <div class="people-stepper">
-    <button type="button" onclick="changePeople(-1)">−</button>
-    <div class="count" id="people-count-data">1</div>
-    <button type="button" onclick="changePeople(1)">+</button>
-  </div>
+  </footer>
 
-  <div id="people-hint-data" class="hint"></div>
-  <div class="price-breakdown" id="price-breakdown-data"></div>
 </div>
-    <div class="form-grid">
-      <div class="field full">
-        <label>Nama (Personal / Group)</label>
-        <input type="text" id="f-nama" placeholder="cth: Kaia / Kaia & Friends">
-      </div>
-      <div class="field">
-        <label>No. WhatsApp aktif</label>
-        <input type="tel" id="f-wa" placeholder="0813-xxxx-xxxx">
-      </div>
-      <div class="field">
-        <label>Email (opsional)</label>
-        <input type="email" id="f-email" placeholder="nama@email.com">
-      </div>
-      <div class="field full">
-        <label>Izin upload foto ke tim Kaia?</label>
-        <select id="f-izin">
-          <option value="Ya">Saya mengizinkan foto saya diupload/dipakai portofolio</option>
-          <option value="Tidak">Saya tidak mengizinkan</option>
-        </select>
-      </div>
-    </div>
-    <div id="step3-error"></div>
-    <div style="margin-top:24px;display:flex;gap:12px;">
-      <button class="btn-ghost" onclick="goToStep(2)">← Kembali</button>
-      <button class="btn-primary" onclick="goToReview()">Lanjut ke Review</button>
-    </div>
-  </section>
 
-  <!-- STEP 4: REVIEW -->
-  <section id="step-4" style="display:none;">
-    <div class="section-head"><h2>Cek kembali sebelum konfirmasi</h2></div>
-    <div class="summary-box" id="review-box"></div>
-    <p class="hint">Pastikan data booking sudah benar sebelum melakukan konfirmasi.</p>
-    <div id="step4-error"></div>
-    <div style="margin-top:20px;display:flex;gap:12px;">
-      <button class="btn-ghost" onclick="goToStep(3)">← Kembali</button>
-      <button class="btn-primary" id="confirm-btn" onclick="confirmBooking()">Confirm Booking</button>
-    </div>
-  </section>
-
-  <!-- STEP 5: SUCCESS -->
-  <section id="step-5" style="display:none;">
-    <div class="section-head"><h2>Booking Berhasil ✦</h2></div>
-    <div class="summary-box" id="success-box"></div>
-    <div class="card" style="margin-top:18px;">
-      <h3 style="font-size:18px;margin-bottom:10px;">Instruksi Pembayaran</h3>
-      <p id="payment-info" style="font-size:14.5px;"></p>
-      <p class="hint">Pembayaran transfer harus langsung lunas. Bukti transfer dikirim maksimal 1×24 jam ke WhatsApp admin.</p>
-    </div>
-    <button class="btn-wa" id="wa-confirm-btn" style="margin-top:20px;">Kirim Konfirmasi ke WhatsApp Admin</button>
-    <p class="hint" id="booking-link-hint"></p>
-  </section>
-</main>
-
-<footer class="section" style="border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;font-size:14px;">
-  <div>
-    <div class="logo" style="margin-bottom:6px;">Kaia Photo Studio</div>
-    <div id="footer-address"></div>
-  </div>
-  <div>
-    <div><a id="footer-ig" href="#" target="_blank">Instagram</a></div>
-    <div><a id="footer-wa" href="#" target="_blank">WhatsApp Admin</a></div>
-  </div>
-</footer>
 
 <script>
-const STEPS = ['Paket', 'Jadwal', 'Data', 'Review'];
-const CATEGORY_LABELS = {
-  pas_foto: 'Pas Foto',
-  self_photo: 'Self Photo',
-  wisuda_family: 'Wisuda / Family',
-  personal_photo: 'Personal Photo',
-  maternity: 'Maternity',
-  prewedding: 'Prewedding'
-};
-const CATEGORY_ORDER = ['pas_foto', 'self_photo', 'wisuda_family', 'personal_photo', 'maternity', 'prewedding'];
+  /*
+    ==========================================
+    KAIA RANDOM GALLERY
+    ==========================================
 
-let currentStep = 1;
-let settings = null;
-let grouped = {};
-let activeCategory = null;
-let selectedPkg = null;
-let peopleCount = 1;
-let selectedDate = null;
-let selectedSlot = null;
-let bookingIdempotencyKey = null;
+    Untuk sekarang endpoint /api/gallery belum dibuat.
 
-function formatIDR(n){ return "Rp" + Number(n).toLocaleString('id-ID'); }
+    Nanti:
+      1. Backend membaca folder Google Drive.
+      2. Backend memilih foto secara random.
+      3. Frontend meminta foto tersebut.
+      4. Foto otomatis ditampilkan di landing page.
 
-function renderStepper(){
-  const el = document.getElementById('stepper');
-  el.innerHTML = STEPS.map((label, i) => {
-    const num = i + 1;
-    const cls = num === currentStep ? 'active' : (num < currentStep ? 'done' : '');
-    return `<div class="step-pill ${cls}"><span class="n">${num}</span>${label}</div>`;
-  }).join('');
-}
+    Contoh response yang nanti kita harapkan:
 
-function goToStep(n){
-  currentStep = n;
-  for (let i = 1; i <= 5; i++) document.getElementById('step-' + i).style.display = (i === n) ? 'block' : 'none';
-  if (n <= 4) renderStepper();
-  document.getElementById('wizard').scrollIntoView({behavior:'smooth', block:'start'});
-}
+      {
+        "photos": [
+          { "url": "...", "alt": "Kaia Photo Studio" },
+          { "url": "...", "alt": "Kaia Photo Studio" }
+        ]
+      }
+  */
 
-async function loadSettings(){
-  const res = await fetch('/api/settings/public');
-  settings = await res.json();
-  document.getElementById('hero-meta').innerHTML =
-    `📍 ${settings.address} &nbsp;·&nbsp; 🕗 ${settings.openTime}–${settings.closeTime} WIB &nbsp;·&nbsp; @${settings.instagram}`;
-  document.getElementById('footer-address').textContent = settings.address;
-  document.getElementById('footer-ig').href = `https://instagram.com/${settings.instagram}`;
-  document.getElementById('footer-wa').href = `https://wa.me/${settings.whatsapp}`;
-  document.getElementById('nav-wa').href = `https://wa.me/${settings.whatsapp}`;
-}
+  async function loadGallery() {
+    try {
+      const response = await fetch('/api/gallery');
 
-async function loadPackages(){
-  const res = await fetch('/api/packages');
-  const data = await res.json();
-  grouped = data.grouped || {};
+      if (!response.ok) {
+        throw new Error('Gallery API belum tersedia');
+      }
 
-  const tabs = document.getElementById('cat-tabs');
-  tabs.innerHTML = CATEGORY_ORDER.filter(c => grouped[c] && grouped[c].length).map(c =>
-    `<button class="cat-tab" data-cat="${c}" onclick="switchCategory('${c}')">${CATEGORY_LABELS[c] || c}</button>`
-  ).join('');
+      const data = await response.json();
 
-  const firstCat = CATEGORY_ORDER.find(c => grouped[c] && grouped[c].length);
-  if (firstCat) switchCategory(firstCat);
-}
+      if (!data.photos || !data.photos.length) {
+        return;
+      }
 
-function switchCategory(cat){
-  activeCategory = cat;
-  document.querySelectorAll('.cat-tab').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
-  renderPackageList(grouped[cat] || []);
-}
+      const cards = document.querySelectorAll('.gallery-card');
 
-// Sinkron dengan server/utils/pricing.js — kalau logika di sana berubah, ubah juga di sini.
-function computePricing(pkg, n){
-  if (!n || n < 1) return null;
-  if (pkg.minPeople && n < pkg.minPeople) return { error: `${pkg.name} minimal ${pkg.minPeople} orang.` };
+      cards.forEach((card, index) => {
+        const photo = data.photos[index];
 
-  if (pkg.pricingType === 'per_person') {
-    return { basePrice: pkg.basePrice, additionalPeopleCharged: 0, additionalFeeTotal: 0, totalPrice: pkg.basePrice * n };
-  }
-  if (pkg.maxPeople && !pkg.additionalPersonFee && n > pkg.maxPeople) {
-    return { error: `${pkg.name} maksimal ${pkg.maxPeople} orang.` };
-  }
-  const included = pkg.includedPeople ?? pkg.maxPeople ?? n;
-  const extra = pkg.additionalPersonFee ? Math.max(0, n - included) : 0;
-  const feeTotal = extra * (pkg.additionalPersonFee || 0);
-  return { basePrice: pkg.basePrice, additionalPeopleCharged: extra, additionalFeeTotal: feeTotal, totalPrice: pkg.basePrice + feeTotal };
-}
+        if (!photo) return;
 
-// Hanya menampilkan label kalau memang ada aturan jumlah orang yang benar-benar
-// diberikan (min>1, ada max, atau per-orang). Kalau tidak ada aturan sama sekali,
-// JANGAN menampilkan kata seperti "fleksibel"/"unlimited" — itu klaim bisnis yang
-// tidak pernah dinyatakan.
-function peopleLabel(pkg){
-  if (pkg.minPeople === pkg.maxPeople && pkg.maxPeople) return `${pkg.minPeople} orang`;
-  if (pkg.maxPeople) return `${pkg.minPeople}–${pkg.maxPeople} orang`;
-  if (pkg.pricingType === 'per_person') return `min. ${pkg.minPeople} orang`;
-  if (pkg.minPeople > 1) return `min. ${pkg.minPeople} orang`;
-  return '';
-}
+        card.innerHTML = '';
 
-function priceLabel(pkg){
-  if (pkg.pricingType === 'per_person') return `${formatIDR(pkg.basePrice)}/orang`;
-  return `Mulai ${formatIDR(pkg.basePrice)}`;
-}
+        const img = document.createElement('img');
 
-function renderPackageList(packages){
-  const list = document.getElementById('packages-list');
-  list.innerHTML = '';
-  packages.forEach(pkg => {
-    const card = document.createElement('div');
-    card.className = 'pkg';
-    card.dataset.id = pkg.id;
-    const label = peopleLabel(pkg);
-    card.innerHTML = `
-      <div class="check"></div>
-      ${label ? `<div class="price-tag">${label}</div>` : ''}
-      <div class="name">${pkg.name}</div>
-      <div class="price">${priceLabel(pkg)}</div>
-      ${pkg.benefits.length ? `<ul>${pkg.benefits.map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
-      ${pkg.terms.length ? `<ul style="opacity:0.65;margin-top:8px;">${pkg.terms.map(t => `<li>${t}</li>`).join('')}</ul>` : ''}
-      ${pkg.printOptions.length ? `<div class="hint" style="margin-top:10px;">Pilihan cetak: ${pkg.printOptions.join(' &nbsp;/&nbsp; ')}</div>` : ''}
-      <div class="meta"><span>⏱ ${pkg.durationMinutes ? pkg.durationMinutes + ' menit' : 'Durasi menyusul'}</span>${pkg.additionalPersonFee ? `<span>+${formatIDR(pkg.additionalPersonFee)}/orang tambahan</span>` : ''}</div>
-    `;
-    card.addEventListener('click', () => selectPackage(pkg));
-    list.appendChild(card);
-  });
-}
+        img.src = photo.url;
+        img.alt = photo.alt || 'Kaia Photo Studio';
+        img.loading = 'lazy';
 
-function selectPackage(pkg){
-  selectedPkg = pkg;
-  peopleCount = pkg.minPeople || 1;
-  document.querySelectorAll('.pkg').forEach(el => el.classList.toggle('active', Number(el.dataset.id) === pkg.id));
-  document.getElementById('people-panel').style.display = 'block';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
 
-  const noDurationBox = document.getElementById('no-duration-notice');
-  const proceedBtn = document.getElementById('proceed-btn');
-  if (!pkg.durationMinutes) {
-    // Durasi paket ini belum dikonfirmasi studio — jangan menebak angkanya,
-    // jangan biarkan customer lanjut ke penjadwalan otomatis.
-    noDurationBox.style.display = 'block';
-    noDurationBox.innerHTML = `<div class="error-box">Durasi sesi untuk paket ini belum kami tentukan di sistem. Booking online untuk paket ini belum tersedia — hubungi admin langsung ya.</div>`;
-    proceedBtn.style.display = 'none';
-  } else {
-    noDurationBox.style.display = 'none';
-    proceedBtn.style.display = 'inline-block';
-  }
+        card.appendChild(img);
+      });
 
-  updatePeopleUI();
-  document.getElementById('people-panel').scrollIntoView({behavior:'smooth', block:'center'});
-}
+      // Hero menggunakan foto random pertama
+      if (data.photos[0]) {
+        const hero = document.getElementById('hero-photo');
 
-function changePeople(delta){
-  if (!selectedPkg) return;
+        const img = document.createElement('img');
 
-  const min = selectedPkg.minPeople || 1;
-  const next = peopleCount + delta;
+        img.src = data.photos[0].url;
+        img.alt = data.photos[0].alt || 'Kaia Photo Studio';
 
-  if (next < min) return;
-  if (selectedPkg.maxPeople && next > selectedPkg.maxPeople) return;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.display = 'block';
 
-  peopleCount = next;
-  updatePeopleUI();
-}
+        hero.innerHTML = '';
+        hero.appendChild(img);
+      }
 
-function updatePeopleUI(){
-  if (!selectedPkg) return;
+    } catch (error) {
 
-  const pricing = computePricing(selectedPkg, peopleCount);
+      /*
+        Jangan bikin website error kalau
+        Google Drive belum tersambung.
 
-  // STEP 1 — people panel
-  const countEl = document.getElementById('people-count');
-  const hintEl = document.getElementById('people-hint');
-  const breakdownEl = document.getElementById('price-breakdown');
+        Untuk sekarang gallery tetap menampilkan
+        area kosong yang clean.
+      */
 
-  if (countEl) countEl.textContent = peopleCount;
-
-  // STEP 3 — data form
-  const dataCountEl = document.getElementById('people-count-data');
-  const dataHintEl = document.getElementById('people-hint-data');
-  const dataBreakdownEl = document.getElementById('price-breakdown-data');
-
-  if (dataCountEl) dataCountEl.textContent = peopleCount;
-
-  if (pricing && pricing.error) {
-    if (hintEl) {
-      hintEl.innerHTML = `<span style="color:var(--red);">${pricing.error}</span>`;
+      console.log('Gallery belum tersedia:', error.message);
     }
-
-    if (breakdownEl) breakdownEl.innerHTML = '';
-    if (dataHintEl) {
-      dataHintEl.innerHTML = `<span style="color:var(--red);">${pricing.error}</span>`;
-    }
-    if (dataBreakdownEl) dataBreakdownEl.innerHTML = '';
-    return;
   }
 
-  const hintText = selectedPkg.pricingType === 'per_person'
-    ? `Harga dihitung per orang.`
-    : (selectedPkg.additionalPersonFee
-        ? `Termasuk ${selectedPkg.includedPeople || selectedPkg.maxPeople} orang, lebih dari itu kena biaya tambahan.`
-        : '');
-
-  if (hintEl) hintEl.textContent = hintText;
-  if (dataHintEl) dataHintEl.textContent = hintText;
-
-  let rows = `<div class="row"><span>Harga paket</span><span>${formatIDR(pricing.basePrice)}</span></div>`;
-
-  if (pricing.additionalPeopleCharged > 0) {
-    rows += `<div class="row"><span>${pricing.additionalPeopleCharged} orang tambahan</span><span>${formatIDR(pricing.additionalFeeTotal)}</span></div>`;
-  }
-
-  rows += `<div class="row total"><span>Total</span><span>${formatIDR(pricing.totalPrice)}</span></div>`;
-
-  if (breakdownEl) breakdownEl.innerHTML = rows;
-  if (dataBreakdownEl) dataBreakdownEl.innerHTML = rows;
-}
-
-function proceedToSchedule(){
-  const pricing = computePricing(selectedPkg, peopleCount);
-  if (!pricing || pricing.error) return;
-
-  const dateInput = document.getElementById('f-date');
-  const today = new Date().toISOString().slice(0, 10);
-  if (!dateInput.value) dateInput.value = today;
-  dateInput.min = today;
-
-  goToStep(2);
-  loadAvailability();
-}
-
-document.getElementById('f-date').addEventListener('change', loadAvailability);
-
-async function loadAvailability(){
-  if (!selectedPkg) return;
-  const date = document.getElementById('f-date').value;
-  if (!date) return;
-  selectedDate = date;
-  const container = document.getElementById('slots-container');
-  container.innerHTML = '<div class="slot-empty">Memuat jadwal…</div>';
-
-  const res = await fetch(`/api/availability?packageId=${selectedPkg.id}&date=${date}`);
-  const data = await res.json();
-  if (!res.ok) { container.innerHTML = `<div class="slot-empty">${data.error || 'Gagal memuat jadwal.'}</div>`; return; }
-  if (!data.slots.length) { container.innerHTML = '<div class="slot-empty">Tidak ada slot tersedia di tanggal ini. Coba tanggal lain.</div>'; return; }
-
-  container.innerHTML = '';
-  data.slots.forEach(time => {
-    const btn = document.createElement('button');
-    btn.className = 'slot-btn';
-    btn.textContent = time;
-    btn.addEventListener('click', () => {
-      selectedSlot = time;
-      document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      setTimeout(() => goToStep(3), 250);
-    });
-    container.appendChild(btn);
-  });
-}
-
-function goToReview(){
-  const nama = document.getElementById('f-nama').value.trim();
-  const wa = document.getElementById('f-wa').value.trim();
-  const errBox = document.getElementById('step3-error');
-  errBox.innerHTML = '';
-
-  if (!nama) return errBox.innerHTML = `<div class="error-box">Nama wajib diisi.</div>`;
-  if (!wa) return errBox.innerHTML = `<div class="error-box">Nomor WhatsApp wajib diisi.</div>`;
-
-  const izin = document.getElementById('f-izin').value;
-  const email = document.getElementById('f-email').value.trim();
-  const pricing = computePricing(selectedPkg, peopleCount);
-
-  let rows = `
-    <div class="row"><span>Nama</span><span>${nama}</span></div>
-    <div class="row"><span>WhatsApp</span><span>${wa}</span></div>
-    <div class="row"><span>Paket</span><span>${selectedPkg.name}</span></div>
-    <div class="row"><span>Tanggal</span><span>${selectedDate}</span></div>
-    <div class="row"><span>Jam</span><span>${selectedSlot}</span></div>
-    <div class="row"><span>Jumlah orang</span><span>${peopleCount}</span></div>
-    <div class="row"><span>Izin upload</span><span>${izin}</span></div>
-    <div class="row"><span>Harga paket</span><span>${formatIDR(pricing.basePrice)}</span></div>`;
-  if (pricing.additionalPeopleCharged > 0) {
-    rows += `<div class="row"><span>${pricing.additionalPeopleCharged} orang tambahan</span><span>${formatIDR(pricing.additionalFeeTotal)}</span></div>`;
-  }
-  rows += `<div class="row total"><span>Total</span><span>${formatIDR(pricing.totalPrice)}</span></div>`;
-
-  document.getElementById('review-box').innerHTML = rows;
-  goToStep(4);
-}
-
-async function confirmBooking(){
-  const btn = document.getElementById('confirm-btn');
-  const errBox = document.getElementById('step4-error');
-  errBox.innerHTML = '';
-  btn.disabled = true;
-  btn.textContent = 'Memproses Booking...';
-
-  bookingIdempotencyKey = bookingIdempotencyKey || crypto.randomUUID();
-
-  const payload = {
-    packageId: selectedPkg.id,
-    date: selectedDate,
-    startTime: selectedSlot,
-    customerName: document.getElementById('f-nama').value.trim(),
-    whatsapp: document.getElementById('f-wa').value.trim(),
-    email: document.getElementById('f-email').value.trim(),
-    peopleCount: peopleCount,
-    photoUploadPermission: document.getElementById('f-izin').value
-  };
-
-  try {
-    const res = await fetch('/api/bookings', { method: 'POST', headers: {'Content-Type':'application/json', 'Idempotency-Key': bookingIdempotencyKey}, body: JSON.stringify(payload) });
-    const data = await res.json();
-
-    if (!res.ok) {
-      errBox.innerHTML = `<div class="error-box">${data.error || 'Booking gagal. Silakan coba lagi.'}</div>`;
-      btn.disabled = false;
-      btn.textContent = 'Confirm Booking';
-      if (res.status === 409) setTimeout(() => { goToStep(2); loadAvailability(); }, 1200);
-      return;
-    }
-    showSuccess(data);
-    bookingIdempotencyKey = null;
-  } catch (e) {
-    errBox.innerHTML = `<div class="error-box">Booking gagal. Periksa koneksi kamu dan coba lagi.</div>`;
-    btn.disabled = false;
-    btn.textContent = 'Confirm Booking';
-  }
-}
-
-function showSuccess(data){
-  let rows = `
-    <div class="row"><span>Booking Code</span><span><strong>${data.bookingCode}</strong></span></div>
-    <div class="row"><span>Status</span><span><span class="badge Pending">Menunggu Pembayaran</span></span></div>
-    <div class="row"><span>Paket</span><span>${data.packageName}</span></div>
-    <div class="row"><span>Tanggal</span><span>${data.date}</span></div>
-    <div class="row"><span>Jam</span><span>${data.startTime} – ${data.endTime}</span></div>
-    <div class="row"><span>Jumlah orang</span><span>${data.peopleCount}</span></div>`;
-  if (data.additionalPeopleCharged > 0) {
-    rows += `<div class="row"><span>${data.additionalPeopleCharged} orang tambahan</span><span>${formatIDR(data.additionalFeeTotal)}</span></div>`;
-  }
-  rows += `<div class="row total"><span>Total</span><span>${formatIDR(data.totalPrice)}</span></div>`;
-  document.getElementById('success-box').innerHTML = rows;
-
-  document.getElementById('payment-info').innerHTML = `
-    Transfer ${data.settings.bankName}: <strong>${data.settings.bankAccount}</strong> a.n. ${data.settings.bankHolder}<br>
-    Atau bayar CASH/QRIS langsung di studio.
-  `;
-  document.getElementById('booking-link-hint').innerHTML =
-    `Kamu bisa cek status booking kapan saja di: <a href="/booking/${data.bookingCode}?token=${encodeURIComponent(data.accessToken)}">Lihat status booking</a>`;
-
-  const nama = document.getElementById('f-nama').value.trim();
-  const email = document.getElementById('f-email').value.trim();
-  const izin = document.getElementById('f-izin').value;
-  const pesan =
-`Halo kak, saya ${nama} sudah melakukan booking di Kaia Photo Studio.
-
-Booking Code: ${data.bookingCode}
-Tanggal: ${data.date}
-Jam: ${data.startTime} - ${data.endTime}
-Paket: ${data.packageName}
-Jumlah orang: ${data.peopleCount}
-Total: ${formatIDR(data.totalPrice)}
-
-No. WhatsApp: ${document.getElementById('f-wa').value.trim()}
-Email: ${email || '-'}
-Izin upload foto: ${izin}
-
-Saya akan melakukan pembayaran sesuai informasi dari admin.
-Terima kasih kak 🙏`;
-
-  document.getElementById('wa-confirm-btn').onclick = () => {
-    window.open(`https://wa.me/${data.settings.whatsapp || settings.whatsapp}?text=${encodeURIComponent(pesan)}`, '_blank');
-  };
-
-  goToStep(5);
-}
-
-loadSettings();
-loadPackages();
-renderStepper();
+  loadGallery();
 </script>
 
 </body>
