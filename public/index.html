@@ -74,6 +74,20 @@
   <!-- STEP 3: DATA -->
   <section id="step-3" style="display:none;">
     <div class="section-head"><h2>Isi data untuk booking kamu</h2></div>
+    <div class="people-panel" style="display:block;margin-bottom:20px;">
+  <div style="font-weight:600;color:var(--bronze-deep);font-size:13px;">
+    JUMLAH ORANG YANG DATANG
+  </div>
+
+  <div class="people-stepper">
+    <button type="button" onclick="changePeople(-1)">−</button>
+    <div class="count" id="people-count-data">1</div>
+    <button type="button" onclick="changePeople(1)">+</button>
+  </div>
+
+  <div id="people-hint-data" class="hint"></div>
+  <div class="price-breakdown" id="price-breakdown-data"></div>
+</div>
     <div class="form-grid">
       <div class="field full">
         <label>Nama (Personal / Group)</label>
@@ -291,33 +305,69 @@ function selectPackage(pkg){
 }
 
 function changePeople(delta){
+  if (!selectedPkg) return;
+
+  const min = selectedPkg.minPeople || 1;
   const next = peopleCount + delta;
-  if (next < 1) return;
+
+  if (next < min) return;
+  if (selectedPkg.maxPeople && next > selectedPkg.maxPeople) return;
+
   peopleCount = next;
   updatePeopleUI();
 }
 
 function updatePeopleUI(){
-  document.getElementById('people-count').textContent = peopleCount;
+  if (!selectedPkg) return;
+
   const pricing = computePricing(selectedPkg, peopleCount);
-  const hint = document.getElementById('people-hint');
-  const breakdown = document.getElementById('price-breakdown');
+
+  // STEP 1 — people panel
+  const countEl = document.getElementById('people-count');
+  const hintEl = document.getElementById('people-hint');
+  const breakdownEl = document.getElementById('price-breakdown');
+
+  if (countEl) countEl.textContent = peopleCount;
+
+  // STEP 3 — data form
+  const dataCountEl = document.getElementById('people-count-data');
+  const dataHintEl = document.getElementById('people-hint-data');
+  const dataBreakdownEl = document.getElementById('price-breakdown-data');
+
+  if (dataCountEl) dataCountEl.textContent = peopleCount;
 
   if (pricing && pricing.error) {
-    hint.innerHTML = `<span style="color:var(--red);">${pricing.error}</span>`;
-    breakdown.innerHTML = '';
+    if (hintEl) {
+      hintEl.innerHTML = `<span style="color:var(--red);">${pricing.error}</span>`;
+    }
+
+    if (breakdownEl) breakdownEl.innerHTML = '';
+    if (dataHintEl) {
+      dataHintEl.innerHTML = `<span style="color:var(--red);">${pricing.error}</span>`;
+    }
+    if (dataBreakdownEl) dataBreakdownEl.innerHTML = '';
     return;
   }
-  hint.textContent = selectedPkg.pricingType === 'per_person'
+
+  const hintText = selectedPkg.pricingType === 'per_person'
     ? `Harga dihitung per orang.`
-    : (selectedPkg.additionalPersonFee ? `Termasuk ${selectedPkg.includedPeople || selectedPkg.maxPeople} orang, lebih dari itu kena biaya tambahan.` : '');
+    : (selectedPkg.additionalPersonFee
+        ? `Termasuk ${selectedPkg.includedPeople || selectedPkg.maxPeople} orang, lebih dari itu kena biaya tambahan.`
+        : '');
+
+  if (hintEl) hintEl.textContent = hintText;
+  if (dataHintEl) dataHintEl.textContent = hintText;
 
   let rows = `<div class="row"><span>Harga paket</span><span>${formatIDR(pricing.basePrice)}</span></div>`;
+
   if (pricing.additionalPeopleCharged > 0) {
     rows += `<div class="row"><span>${pricing.additionalPeopleCharged} orang tambahan</span><span>${formatIDR(pricing.additionalFeeTotal)}</span></div>`;
   }
+
   rows += `<div class="row total"><span>Total</span><span>${formatIDR(pricing.totalPrice)}</span></div>`;
-  breakdown.innerHTML = rows;
+
+  if (breakdownEl) breakdownEl.innerHTML = rows;
+  if (dataBreakdownEl) dataBreakdownEl.innerHTML = rows;
 }
 
 function proceedToSchedule(){
