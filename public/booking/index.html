@@ -112,24 +112,54 @@
     <div id="step3-error"></div>
     <div style="margin-top:24px;display:flex;gap:12px;">
       <button class="btn-ghost" onclick="goToStep(2)">← Kembali</button>
+      <button class="btn-primary" onclick="goToStep(4)">Lanjut ke Pembayaran</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: PAYMENT -->
+  <section id="step-4" style="display:none;">
+    <div class="section-head"><h2>Pilih Metode Pembayaran</h2></div>
+
+    <div id="payment-methods" style="display:grid;gap:12px;">
+      <button type="button" class="payment-option" data-payment="cash" onclick="selectPaymentMethod('cash')">
+        <strong>💵 Cash saat di studio</strong>
+        <span>Pembayaran dilakukan saat datang ke studio.</span>
+      </button>
+
+      <button type="button" class="payment-option" data-payment="transfer" onclick="selectPaymentMethod('transfer')">
+        <strong>🏦 Transfer ke rekening</strong>
+        <span>BCA · 0092280193 · a.n. Rajendra Satria Rizki Wardhana</span>
+      </button>
+
+      <button type="button" class="payment-option" data-payment="qris" onclick="selectPaymentMethod('qris')">
+        <strong>📱 QRIS</strong>
+        <span>Scan QRIS untuk melakukan pembayaran.</span>
+      </button>
+    </div>
+
+    <div id="payment-detail" style="margin-top:16px;"></div>
+    <div id="step4-error"></div>
+
+    <div style="margin-top:20px;display:flex;gap:12px;">
+      <button class="btn-ghost" onclick="goToStep(3)">← Kembali</button>
       <button class="btn-primary" onclick="goToReview()">Lanjut ke Review</button>
     </div>
   </section>
 
-  <!-- STEP 4: REVIEW -->
-  <section id="step-4" style="display:none;">
+  <!-- STEP 5: REVIEW -->
+  <section id="step-5" style="display:none;">
     <div class="section-head"><h2>Cek kembali sebelum konfirmasi</h2></div>
     <div class="summary-box" id="review-box"></div>
     <p class="hint">Pastikan data booking sudah benar sebelum melakukan konfirmasi.</p>
-    <div id="step4-error"></div>
+    <div id="step5-error"></div>
     <div style="margin-top:20px;display:flex;gap:12px;">
-      <button class="btn-ghost" onclick="goToStep(3)">← Kembali</button>
+      <button class="btn-ghost" onclick="goToStep(4)">← Kembali</button>
       <button class="btn-primary" id="confirm-btn" onclick="confirmBooking()">Confirm Booking</button>
     </div>
   </section>
 
-  <!-- STEP 5: SUCCESS -->
-  <section id="step-5" style="display:none;">
+  <!-- STEP 6: SUCCESS -->
+  <section id="step-6" style="display:none;">
     <div class="section-head"><h2>Booking Berhasil ✦</h2></div>
     <div class="summary-box" id="success-box"></div>
     <div class="card" style="margin-top:18px;">
@@ -154,7 +184,7 @@
 </footer>
 
 <script>
-const STEPS = ['Paket', 'Jadwal', 'Data', 'Review'];
+const STEPS = ['Paket', 'Jadwal', 'Data', 'Pembayaran', 'Review'];
 const CATEGORY_LABELS = {
   pas_foto: 'Pas Foto',
   self_photo: 'Self Photo',
@@ -174,6 +204,7 @@ let peopleCount = 1;
 let selectedDate = null;
 let selectedSlot = null;
 let bookingIdempotencyKey = null;
+let selectedPaymentMethod = null;
 
 function formatIDR(n){ return "Rp" + Number(n).toLocaleString('id-ID'); }
 
@@ -188,7 +219,7 @@ function renderStepper(){
 
 function goToStep(n){
   currentStep = n;
-  for (let i = 1; i <= 5; i++) document.getElementById('step-' + i).style.display = (i === n) ? 'block' : 'none';
+  for (let i = 1; i <= 6; i++) document.getElementById('step-' + i).style.display = (i === n) ? 'block' : 'none';
   if (n <= 4) renderStepper();
   document.getElementById('wizard').scrollIntoView({behavior:'smooth', block:'start'});
 }
@@ -413,18 +444,84 @@ async function loadAvailability(){
   });
 }
 
+function selectPaymentMethod(method){
+  if (!['cash','transfer','qris'].includes(method)) return;
+
+  selectedPaymentMethod = method;
+
+  document.querySelectorAll('.payment-option').forEach(btn => {
+    const active = btn.dataset.payment === method;
+    btn.style.border = active ? '2px solid var(--accent)' : '1px solid var(--line)';
+    btn.style.background = active ? 'var(--soft)' : 'transparent';
+    btn.style.cursor = 'pointer';
+  });
+
+  const detail = document.getElementById('payment-detail');
+
+  if (method === 'cash') {
+    detail.innerHTML = `
+      <div class="card">
+        <strong>💵 Cash saat di studio</strong>
+        <p class="hint" style="margin-top:8px;">
+          Pembayaran dilakukan saat datang ke studio.
+        </p>
+      </div>`;
+  } else if (method === 'transfer') {
+    detail.innerHTML = `
+      <div class="card">
+        <strong>🏦 Transfer BCA</strong>
+        <p style="margin-top:8px;font-size:16px;">
+          <strong>0092280193</strong><br>
+          a.n. Rajendra Satria Rizki Wardhana
+        </p>
+      </div>`;
+  } else if (method === 'qris') {
+    detail.innerHTML = `
+      <div class="card" style="text-align:center;">
+        <strong>📱 QRIS Kaia Photo Studio</strong>
+        <p class="hint" style="margin:8px 0 14px;">
+          Scan QRIS untuk melakukan pembayaran.
+        </p>
+        <img
+          src="/assets/qris-kaia.png"
+          alt="QRIS Kaia Photo Studio"
+          style="display:block;width:min(100%,360px);height:auto;margin:0 auto;border-radius:12px;"
+        >
+      </div>`;
+  }
+
+  document.getElementById('step4-error').innerHTML = '';
+}
+
 function goToReview(){
   const nama = document.getElementById('f-nama').value.trim();
   const wa = document.getElementById('f-wa').value.trim();
   const errBox = document.getElementById('step3-error');
-  errBox.innerHTML = '';
 
-  if (!nama) return errBox.innerHTML = `<div class="error-box">Nama wajib diisi.</div>`;
-  if (!wa) return errBox.innerHTML = `<div class="error-box">Nomor WhatsApp wajib diisi.</div>`;
+  if (!nama) {
+    goToStep(3);
+    return errBox.innerHTML = `<div class="error-box">Nama wajib diisi.</div>`;
+  }
+
+  if (!wa) {
+    goToStep(3);
+    return errBox.innerHTML = `<div class="error-box">Nomor WhatsApp wajib diisi.</div>`;
+  }
+
+  if (!selectedPaymentMethod) {
+    document.getElementById('step4-error').innerHTML =
+      `<div class="error-box">Metode pembayaran wajib dipilih.</div>`;
+    goToStep(4);
+    return;
+  }
 
   const izin = document.getElementById('f-izin').value;
   const email = document.getElementById('f-email').value.trim();
   const pricing = computePricing(selectedPkg, peopleCount);
+
+  let paymentLabel = 'Cash saat di studio';
+  if (selectedPaymentMethod === 'transfer') paymentLabel = 'Transfer ke rekening';
+  if (selectedPaymentMethod === 'qris') paymentLabel = 'QRIS';
 
   let rows = `
     <div class="row"><span>Nama</span><span>${nama}</span></div>
@@ -434,19 +531,32 @@ function goToReview(){
     <div class="row"><span>Jam</span><span>${selectedSlot}</span></div>
     <div class="row"><span>Jumlah orang</span><span>${peopleCount}</span></div>
     <div class="row"><span>Izin upload</span><span>${izin}</span></div>
+    <div class="row"><span>Metode pembayaran</span><span><strong>${paymentLabel}</strong></span></div>
     <div class="row"><span>Harga paket</span><span>${formatIDR(pricing.basePrice)}</span></div>`;
+
   if (pricing.additionalPeopleCharged > 0) {
-    rows += `<div class="row"><span>${pricing.additionalPeopleCharged} orang tambahan</span><span>${formatIDR(pricing.additionalFeeTotal)}</span></div>`;
+    rows += `
+      <div class="row">
+        <span>${pricing.additionalPeopleCharged} orang tambahan</span>
+        <span>${formatIDR(pricing.additionalFeeTotal)}</span>
+      </div>`;
   }
-  rows += `<div class="row total"><span>Total</span><span>${formatIDR(pricing.totalPrice)}</span></div>`;
+
+  rows += `
+    <div class="row total">
+      <span>Total</span>
+      <span>${formatIDR(pricing.totalPrice)}</span>
+    </div>`;
 
   document.getElementById('review-box').innerHTML = rows;
-  goToStep(4);
+  document.getElementById('step5-error').innerHTML = '';
+  goToStep(5);
 }
+
 
 async function confirmBooking(){
   const btn = document.getElementById('confirm-btn');
-  const errBox = document.getElementById('step4-error');
+  const errBox = document.getElementById('step5-error');
   errBox.innerHTML = '';
   btn.disabled = true;
   btn.textContent = 'Memproses Booking...';
@@ -461,7 +571,8 @@ async function confirmBooking(){
     whatsapp: document.getElementById('f-wa').value.trim(),
     email: document.getElementById('f-email').value.trim(),
     peopleCount: peopleCount,
-    photoUploadPermission: document.getElementById('f-izin').value
+    photoUploadPermission: document.getElementById('f-izin').value,
+    paymentMethod: selectedPaymentMethod
   };
 
   try {
@@ -495,13 +606,26 @@ function showSuccess(data){
   if (data.additionalPeopleCharged > 0) {
     rows += `<div class="row"><span>${data.additionalPeopleCharged} orang tambahan</span><span>${formatIDR(data.additionalFeeTotal)}</span></div>`;
   }
+  const paymentLabel = data.paymentMethod === 'cash'
+    ? 'Cash saat di studio'
+    : data.paymentMethod === 'transfer'
+      ? 'Transfer ke rekening'
+      : 'QRIS';
+
+  rows += `<div class="row"><span>Metode pembayaran</span><span>${paymentLabel}</span></div>`;
   rows += `<div class="row total"><span>Total</span><span>${formatIDR(data.totalPrice)}</span></div>`;
   document.getElementById('success-box').innerHTML = rows;
 
-  document.getElementById('payment-info').innerHTML = `
-    Transfer ${data.settings.bankName}: <strong>${data.settings.bankAccount}</strong> a.n. ${data.settings.bankHolder}<br>
-    Atau bayar CASH/QRIS langsung di studio.
-  `;
+  if (data.paymentMethod === 'cash') {
+    document.getElementById('payment-info').innerHTML =
+      `Pembayaran dilakukan saat datang ke studio.`;
+  } else if (data.paymentMethod === 'transfer') {
+    document.getElementById('payment-info').innerHTML =
+      `Transfer BCA: <strong>${data.settings.bankAccount}</strong> a.n. ${data.settings.bankHolder}.`;
+  } else {
+    document.getElementById('payment-info').innerHTML =
+      `Silakan lakukan pembayaran melalui QRIS Kaia Photo Studio.`;
+  }
   document.getElementById('booking-link-hint').innerHTML =
     `Kamu bisa cek status booking kapan saja di: <a href="/booking/${data.bookingCode}?token=${encodeURIComponent(data.accessToken)}">Lihat status booking</a>`;
 
@@ -516,6 +640,7 @@ Tanggal: ${data.date}
 Jam: ${data.startTime} - ${data.endTime}
 Paket: ${data.packageName}
 Jumlah orang: ${data.peopleCount}
+Metode pembayaran: ${paymentLabel}
 Total: ${formatIDR(data.totalPrice)}
 
 No. WhatsApp: ${document.getElementById('f-wa').value.trim()}
@@ -529,7 +654,7 @@ Terima kasih kak 🙏`;
     window.open(`https://wa.me/${data.settings.whatsapp || settings.whatsapp}?text=${encodeURIComponent(pesan)}`, '_blank');
   };
 
-  goToStep(5);
+  goToStep(6);
 }
 
 loadSettings();

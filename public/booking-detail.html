@@ -37,6 +37,15 @@ async function load(){
     <div class="row"><span>Booking Code</span><span><strong>${data.bookingCode}</strong></span></div>
     <div class="row"><span>Status Booking</span><span><span class="badge ${data.bookingStatus}">${data.bookingStatus}</span></span></div>
     <div class="row"><span>Status Pembayaran</span><span><span class="badge ${data.paymentStatus.replace(' ','')}">${data.paymentStatus}</span></span></div>
+    <div class="row"><span>Metode Pembayaran</span><span>${
+      data.paymentMethod === 'cash'
+        ? 'Cash saat di studio'
+        : data.paymentMethod === 'transfer'
+          ? 'Transfer ke rekening'
+          : data.paymentMethod === 'qris'
+            ? 'QRIS'
+            : '-'
+    }</span></div>
     <div class="row"><span>Paket</span><span>${data.packageName}</span></div>
     <div class="row"><span>Tanggal</span><span>${data.date}</span></div>
     <div class="row"><span>Jam</span><span>${data.startTime} – ${data.endTime}</span></div>

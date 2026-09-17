@@ -233,6 +233,7 @@ async function openBookingDetail(id){
       <div class="row"><span>Jam</span><span>${esc(b.start_time)}–${esc(b.end_time)}</span></div>
       <div class="row"><span>Jumlah orang</span><span>${b.people_count}${b.additional_people_charged > 0 ? ` (${b.additional_people_charged} tambahan)` : ''}</span></div>
       <div class="row"><span>Izin upload</span><span>${esc(b.photo_upload_permission)}</span></div>
+      <div class="row"><span>Metode pembayaran</span><span>${esc(b.payment_method === 'cash' ? 'Cash saat di studio' : b.payment_method === 'transfer' ? 'Transfer ke rekening' : b.payment_method === 'qris' ? 'QRIS' : '-')}</span></div>
       <div class="row total"><span>Total</span><span>${formatIDR(b.total_price)}</span></div>
     </div>
 

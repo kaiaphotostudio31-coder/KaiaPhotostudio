@@ -118,7 +118,8 @@ async function syncBookingToCalendar(booking) {
           `WhatsApp: ${booking.whatsapp}`,
           `Package: ${booking.package_name_snapshot}`,
           `People: ${booking.people_count}`,
-          `Payment: ${booking.payment_status}`
+          `Payment Method: ${booking.payment_method || '-'}`,
+          `Payment Status: ${booking.payment_status}`
         ].join('\n'),
         start: { dateTime: `${booking.booking_date}T${booking.start_time}:00+07:00`, timeZone: 'Asia/Jakarta' },
         end: { dateTime: `${booking.booking_date}T${booking.end_time}:00+07:00`, timeZone: 'Asia/Jakarta' },
@@ -164,14 +165,31 @@ async function getDriveImageBuffer(fileId) {
   const auth = await authorizedClient();
   const drive = googleLib().drive({ version: 'v3', auth });
 
-  const { data, headers } = await drive.files.get(
+  const metadata = await drive.files.get({
+    fileId,
+    fields: 'mimeType'
+  });
+
+  const mimeType = metadata.data.mimeType;
+
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(mimeType)) {
+    throw new Error(`Unsupported image type: ${mimeType}`);
+  }
+
+  const response = await drive.files.get(
     { fileId, alt: 'media' },
-    { responseType: 'arraybuffer' }
+    { responseType: 'stream' }
   );
 
+  const chunks = [];
+
+  for await (const chunk of response.data) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
   return {
-    buffer: Buffer.from(data),
-    contentType: headers?.['content-type'] || 'application/octet-stream'
+    buffer: Buffer.concat(chunks),
+    contentType: mimeType
   };
 }
 

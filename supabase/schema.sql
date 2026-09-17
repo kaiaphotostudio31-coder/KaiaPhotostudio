@@ -49,6 +49,7 @@ create table if not exists bookings (
   timezone text not null default 'Asia/Jakarta',
   photo_upload_permission text not null,
   payment_status text not null default 'Unpaid',
+  payment_method text check (payment_method is null or payment_method in ('cash', 'transfer', 'qris')),
   booking_status text not null default 'Pending',
   notes text,
   cancel_reason text,
@@ -322,7 +323,8 @@ create or replace function create_booking(
   p_total_price integer,
   p_booking_date date,
   p_start_time text,
-  p_photo_upload_permission text
+  p_photo_upload_permission text,
+  p_payment_method text
 ) returns bookings as $$
 declare
   result bookings;
@@ -366,10 +368,10 @@ begin
   insert into bookings(
     booking_code,customer_name,whatsapp,email,package_id,package_name_snapshot,category_snapshot,pricing_type_snapshot,base_price_snapshot,
     duration_minutes_snapshot,additional_person_fee_snapshot,included_people_snapshot,people_count,additional_people_charged,total_price,
-    booking_date,start_time,end_time,timezone,photo_upload_permission,payment_status,booking_status,idempotency_key
+    booking_date,start_time,end_time,timezone,photo_upload_permission,payment_method,payment_status,booking_status,idempotency_key
   ) values(
     'KAIA-'||to_char(p_booking_date,'YYMMDD')||'-'||lpad(seq_no::text,3,'0'),p_customer_name,p_whatsapp,p_email,p_package_id,p_package_name,p_category,p_pricing_type,p_base_price,
-    p_duration_minutes,p_additional_person_fee,p_included_people,p_people_count,p_additional_people_charged,p_total_price,p_booking_date,p_start_time,end_time_str,'Asia/Jakarta',p_photo_upload_permission,'Unpaid','Pending',p_idempotency_key
+    p_duration_minutes,p_additional_person_fee,p_included_people,p_people_count,p_additional_people_charged,p_total_price,p_booking_date,p_start_time,end_time_str,'Asia/Jakarta',p_photo_upload_permission,p_payment_method,'Unpaid','Pending',p_idempotency_key
   ) returning * into result;
 
   update booking_idempotency set booking_id=result.id where idempotency_key=p_idempotency_key;
@@ -458,7 +460,7 @@ $$ language plpgsql security definer set search_path=public;
 -- FINAL SECURITY HARDENING
 -- Backend uses the Supabase service role; public/anon clients must not execute booking or sync RPCs directly.
 revoke all on function public.create_booking(
-  text,text,text,text,text,bigint,text,text,text,integer,integer,integer,integer,integer,integer,integer,date,text,text
+  text,text,text,text,text,bigint,text,text,text,integer,integer,integer,integer,integer,integer,integer,date,text,text,text
 ) from public, anon, authenticated;
 
 revoke all on function claim_calendar_sync(bigint) from public, anon, authenticated;

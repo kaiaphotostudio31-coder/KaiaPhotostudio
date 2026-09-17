@@ -113,13 +113,14 @@ router.get('/availability', async (req,res)=>{
 });
 
 router.post('/bookings', async (req,res)=>{
-  const {packageId,date,startTime,customerName,whatsapp,email,peopleCount,photoUploadPermission}=req.body;
+  const {packageId,date,startTime,customerName,whatsapp,email,peopleCount,photoUploadPermission,paymentMethod}=req.body;
   const idempotencyKey=String(req.get('Idempotency-Key')||'').trim();
   if(!idempotencyKey || idempotencyKey.length<16 || idempotencyKey.length>200) return res.status(400).json({error:'Idempotency-Key wajib diisi (minimal 16 karakter).'});
   if(!packageId||!date||!startTime) return res.status(400).json({error:'Paket, tanggal, dan jam wajib dipilih.'});
   if(!customerName||!String(customerName).trim()) return res.status(400).json({error:'Nama wajib diisi.'});
   if(!whatsapp||!String(whatsapp).trim()) return res.status(400).json({error:'Nomor WhatsApp wajib diisi.'});
   if(photoUploadPermission!=='Ya'&&photoUploadPermission!=='Tidak') return res.status(400).json({error:'Izin upload foto wajib dipilih.'});
+  if(!['cash','transfer','qris'].includes(paymentMethod)) return res.status(400).json({error:'Metode pembayaran wajib dipilih.'});
   const {data:pkg}=await supabase.from('packages').select('*').eq('id',packageId).eq('active',true).single();
   if(!pkg) return res.status(404).json({error:'Paket tidak ditemukan atau sudah tidak aktif.'});
   if(pkg.is_addon) return res.status(400).json({error:'Paket add-on tidak bisa dibooking sebagai sesi utama.'});
@@ -129,20 +130,20 @@ router.post('/bookings', async (req,res)=>{
   if(startMin<openMin||endMin>closeMin) return res.status(400).json({error:'Studio tidak beroperasi pada jam tersebut.'});
   const today=todayJakartaStr(); if(date<today) return res.status(400).json({error:'Tanggal booking tidak boleh di masa lalu.'});
   if(date===today && startMin<=nowInJakarta().getHours()*60+nowInJakarta().getMinutes()) return res.status(400).json({error:'Jam yang dipilih sudah lewat.'});
-  const payload={packageId,date,startTime,customerName:String(customerName).trim(),whatsapp:String(whatsapp).trim(),email:String(email||'').trim(),peopleCount:Number(peopleCount),photoUploadPermission};
+  const payload={packageId,date,startTime,customerName:String(customerName).trim(),whatsapp:String(whatsapp).trim(),email:String(email||'').trim(),peopleCount:Number(peopleCount),photoUploadPermission,paymentMethod};
   const requestHash=crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex');
   const {data:booking,error}=await supabase.rpc('create_booking',{
     p_idempotency_key:idempotencyKey,p_request_hash:requestHash,p_customer_name:payload.customerName,p_whatsapp:payload.whatsapp,p_email:payload.email,p_package_id:pkg.id,
     p_package_name:pkg.name,p_category:pkg.category,p_pricing_type:pkg.pricing_type,p_base_price:pricing.basePrice,p_duration_minutes:pkg.duration_minutes,
     p_additional_person_fee:pkg.additional_person_fee,p_included_people:pkg.included_people,p_people_count:payload.peopleCount,p_additional_people_charged:pricing.additionalPeopleCharged,
-    p_total_price:pricing.totalPrice,p_booking_date:date,p_start_time:startTime,p_photo_upload_permission:photoUploadPermission
+    p_total_price:pricing.totalPrice,p_booking_date:date,p_start_time:startTime,p_photo_upload_permission:photoUploadPermission,p_payment_method:paymentMethod
   });
   if(error){ const m=error.message||''; if(m.includes('SLOT_TAKEN')) return res.status(409).json({error:'Maaf, slot ini baru saja dibooking customer lain. Silakan pilih jam lain.'}); if(m.includes('IDEMPOTENCY_CONFLICT')) return res.status(409).json({error:'Idempotency-Key sudah pernah dipakai untuk data booking yang berbeda.'}); console.error(error); return res.status(500).json({error:'Booking gagal. Silakan coba lagi.'}); }
   const b=Array.isArray(booking)?booking[0]:booking;
-  res.status(201).json({bookingCode:b.booking_code,accessToken:bookingAccessToken(b),packageName:b.package_name_snapshot,basePrice:b.base_price_snapshot,additionalPeopleCharged:b.additional_people_charged,additionalFeeTotal:(b.additional_people_charged||0)*(b.additional_person_fee_snapshot||0),totalPrice:b.total_price,date:b.booking_date,startTime:b.start_time,endTime:b.end_time,peopleCount:b.people_count,paymentStatus:b.payment_status,bookingStatus:b.booking_status,settings:{whatsapp:settings.whatsapp,bankName:settings.bankName,bankAccount:settings.bankAccount,bankHolder:settings.bankHolder}});
+  res.status(201).json({bookingCode:b.booking_code,accessToken:bookingAccessToken(b),packageName:b.package_name_snapshot,basePrice:b.base_price_snapshot,additionalPeopleCharged:b.additional_people_charged,additionalFeeTotal:(b.additional_people_charged||0)*(b.additional_person_fee_snapshot||0),totalPrice:b.total_price,date:b.booking_date,startTime:b.start_time,endTime:b.end_time,peopleCount:b.people_count,paymentMethod:b.payment_method,paymentStatus:b.payment_status,bookingStatus:b.booking_status,settings:{whatsapp:settings.whatsapp,bankName:settings.bankName,bankAccount:settings.bankAccount,bankHolder:settings.bankHolder}});
 });
 
-router.get('/bookings/:code', async(req,res)=>{ const token=String(req.query.token||''); if(!token)return res.status(401).json({error:'Token akses booking diperlukan.'}); const {data:b}=await supabase.from('bookings').select('*').eq('booking_code',req.params.code).single(); if(!b)return res.status(404).json({error:'Booking tidak ditemukan.'}); let expected; try{expected=bookingAccessToken(b);}catch(e){return res.status(500).json({error:'Status booking belum dapat dimuat.'});} if(!safeEqual(token,expected))return res.status(403).json({error:'Token akses booking tidak valid.'}); res.json({bookingCode:b.booking_code,packageName:b.package_name_snapshot,basePrice:b.base_price_snapshot,additionalPeopleCharged:b.additional_people_charged,totalPrice:b.total_price,date:b.booking_date,startTime:b.start_time,endTime:b.end_time,peopleCount:b.people_count,paymentStatus:b.payment_status,bookingStatus:b.booking_status,calendarSyncStatus:b.calendar_sync_status||'pending'}); });
+router.get('/bookings/:code', async(req,res)=>{ const token=String(req.query.token||''); if(!token)return res.status(401).json({error:'Token akses booking diperlukan.'}); const {data:b}=await supabase.from('bookings').select('*').eq('booking_code',req.params.code).single(); if(!b)return res.status(404).json({error:'Booking tidak ditemukan.'}); let expected; try{expected=bookingAccessToken(b);}catch(e){return res.status(500).json({error:'Status booking belum dapat dimuat.'});} if(!safeEqual(token,expected))return res.status(403).json({error:'Token akses booking tidak valid.'}); res.json({bookingCode:b.booking_code,packageName:b.package_name_snapshot,basePrice:b.base_price_snapshot,additionalPeopleCharged:b.additional_people_charged,totalPrice:b.total_price,date:b.booking_date,startTime:b.start_time,endTime:b.end_time,peopleCount:b.people_count,paymentMethod:b.payment_method,paymentStatus:b.payment_status,bookingStatus:b.booking_status,calendarSyncStatus:b.calendar_sync_status||'pending'}); });
 
 // Secure photo selection: the token is the only customer authorization credential.
 router.get('/selection/:token', async(req,res)=>{
